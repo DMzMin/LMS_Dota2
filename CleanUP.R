@@ -25,3 +25,7 @@ MatchDF <- MatchDF %>% mutate(date = as.POSIXct(MatchDF$start_time, tz = "UTC", 
 # Combine PlayersDF and MatchDF into CombinedDF
 
 CombinedDF <- merge(PlayersDF, MatchDF, by = "match_id")
+
+# Remove redundant data frames
+rm(MatchDF)
+rm(PlayersDF)
