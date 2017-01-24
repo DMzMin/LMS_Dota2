@@ -48,6 +48,16 @@ CombinedDF <- arrange(CombinedDF, match_id, player_slot)
 glimpse(CombinedDF)
 CombinedDF <- CombinedDF[,c(2:4,1,24,9:18,23,19:22,5:8)]
 
+# The dataset should be limited to matches that last between 20 - 90 minutes (1200 - 5400
+# seconds)
+CombinedDF$Trange <- between(CombinedDF$duration, 1200, 5400)
+print(table(CombinedDF$Trange))
+
+# This has identified 495,460 matches whose durations are between 20 - 90 minutes and
+# 4540 matches outside these limits.
+
+
+
 # Remove redundant data frames (remove #s to activate)
 #rm(MatchDF)
 #rm (PlayersDF)
