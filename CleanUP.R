@@ -52,5 +52,5 @@ CombinedDF <- CombinedDF[,c(2:4,1,24,9:18,23,19:22,5:8)]
 #rm(MatchDF)
 #rm (PlayersDF)
 
-str(CombinedDF)
+glimpse(CombinedDF)
   
