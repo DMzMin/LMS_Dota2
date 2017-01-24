@@ -34,17 +34,23 @@ glimpse(Hero_Names)
 # Clean up Hero_Names data frame, removing the column 'name'
 
 Hero_Names[1] <- NULL
-colnames(Hero_Names) <- c("hero_id", "Names")
+colnames(Hero_Names) <- c("hero_id", "Hero_Names")
 head(Hero_Names, n = 3)
 
 # Add a row defining hero_id '0' as 'NA'
-Hero_Names <- add_row(Hero_Names, hero_id = 0, Names = "NA")
+Hero_Names <- add_row(Hero_Names, hero_id = 0, Hero_Names = "NA")
 Hero_Names <- arrange(Hero_Names, hero_id)
 
+CombinedDF <- merge(CombinedDF, Hero_Names, by = "hero_id")
+CombinedDF <- arrange(CombinedDF, match_id, player_slot)
 
+# Place CombinedDF columns into a better order
+glimpse(CombinedDF)
+CombinedDF <- CombinedDF[,c(2:4,1,24,9:18,23,19:22,5:8)]
 
 # Remove redundant data frames (remove #s to activate)
 #rm(MatchDF)
 #rm (PlayersDF)
 
+str(CombinedDF)
   
