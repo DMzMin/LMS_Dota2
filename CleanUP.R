@@ -26,7 +26,7 @@ MatchDF <- MatchDF %>% mutate(date = as.POSIXct(MatchDF$start_time, tz = "UTC", 
 
 CombinedDF <- merge(PlayersDF, MatchDF, by = "match_id")
 
-# Replace Hero_ID numbers with Hero names
+# Load and examine 'hero_names.csv'
 
 Hero_Names <- read.csv("hero_names.csv")
 glimpse(Hero_Names)
@@ -37,10 +37,14 @@ Hero_Names[1] <- NULL
 colnames(Hero_Names) <- c("hero_id", "Names")
 head(Hero_Names, n = 3)
 
-test <- merge(CombinedDF, Hero_Names, by = "hero_id")
-ungroup(test)
-test1 <- test %>% select(1, 24)
+# Add a row defining hero_id '0' as 'NA'
+Hero_Names <- add_row(Hero_Names, hero_id = 0, Names = "NA")
+Hero_Names <- arrange(Hero_Names, hero_id)
 
-# Remove redundant data frames
-rm(MatchDF)
-rm(PlayersDF)
+
+
+# Remove redundant data frames (remove #s to activate)
+#rm(MatchDF)
+#rm (PlayersDF)
+
+  
