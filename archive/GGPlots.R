@@ -28,3 +28,7 @@ ggplot(CombinedDF, aes(x = Hero_Names, y = kills, col = radiant_win)) +
 range <- between(CombinedDF$duration, 1200, 5400)
 table(range)
 495460 + 4540
+
+tallyDF <- CombinedDF %>% group_by(match_id, hero_id) %>% tally() %>% filter(n>1)
+
+data <- CombinedDF %>% group_by(match_id, hero_id) %>% summarize(count = n())

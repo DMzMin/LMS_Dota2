@@ -40,7 +40,7 @@ head(Hero_Names, n = 3)
 # Add a row defining hero_id '0' as 'NA'
 Hero_Names <- add_row(Hero_Names, hero_id = 0, Hero_Names = "NA")
 Hero_Names <- arrange(Hero_Names, hero_id)
-
+## don't need to specify the extra hero_id, use left_join instead ##
 CombinedDF <- merge(CombinedDF, Hero_Names, by = "hero_id")
 CombinedDF <- arrange(CombinedDF, match_id, player_slot)
 
