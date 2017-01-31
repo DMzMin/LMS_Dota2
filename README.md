@@ -1,5 +1,5 @@
 # LMS_Dota2
-Capstone project using Dota 2 dataset
+Capstone project using Dota 2 dataset by LMS
 
 This capstone project studies a Dota 2 dataset posted to Kaggle by user Devin which can be found here: https://www.kaggle.com/devinanzelmo/dota-2-matches
 

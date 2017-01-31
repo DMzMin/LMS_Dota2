@@ -19,8 +19,10 @@ Before the matches begin each player selects a hero from 112 different possibili
 
 With these initial questions in mind lets take a look at the dataset.
 
-## The Dataset
-A dataset containing a wide variety of information posted to Kaggle by user Devin [link](https://www.kaggle.com/devinanzelmo/dota-2-matches) has a very interesting range of variables set out in several CSV files.  This study will mainly focus on the analysis of two of these files:
+## The Dataset & Initial Exploratory Data Analysis
+A dataset containing a wide variety of information posted to Kaggle by user Devin [link](https://www.kaggle.com/devinanzelmo/dota-2-matches) has a very interesting range of variables set out accross several CSV files.  Devin has obtained this data from a data mining website called opendota.com which collects match data from the Dota2 game servers.
+
+This study will mainly focus on the analysis of two of these files:
 
 match.csv    	  - contains 50,000 observations over 10 variable
 players.csv 	  - contains 500,000 observations over 73 variables
@@ -28,7 +30,6 @@ players.csv 	  - contains 500,000 observations over 73 variables
 Other useful files that will support this work include:
 
 hero_names.csv  - contains 112 observations over 3 variables
-
 
 ```{r Dataset, include=FALSE}
 match <- read.csv("match.csv")
@@ -45,9 +46,9 @@ colnames(Hero_Names) <- c("hero_id", "Hero_Names")
 ```
 
 ### match.csv
-The data frame 'match' cotains information regarding 50,000 matches Devin has collected together.  The 'match_id' variable is an integer number that Devin updated with numbers from 0 to 49,999, which we also find in 'players' data frame.  This variable is also present in the 'players' data frame and will be used to link them together.
+The data frame 'match' cotains information regarding 50,000 matches Devin has collected together.  The 'match_id' variable is an integer number that Devin updated with numbers from 0 to 49,999, which we also find in 'players' data frame.  Devin did this to save space in his files since the orginal 'match_id' values from Dota2 servers is much longer.  This variable is also present in the 'players' data frame and will be used to link them together.
 
-The variable 'start_time' is an integer variable that represents the time in seconds when each match started based upon the default date / time stamp of 00:00, 01/01/1970, UTC since DOTA 2 is made by Valve Corporation who are based in Washington, USA.
+The variable 'start_time' is an integer variable that represents the time in seconds when each match started based upon the default date / time stamp of 00:00, 01/01/1970, UTC since DOTA 2 is made by Valve Corporation who are based in Washington, USA.  The 'start_time' variable also generates an interesting histogram 'r hist(match$start_time, breaks = 50, col = "red")' which shows that the dataset contains many more matches after around the 1447300000 second mark than before it.  When asking Devin about this he responded saying that this is most likely caused by the way [link](https://www.opendota.com) sampled the Dota2 game servers.  He believe the sudden increase in matches collected resulted from opendota improving the way they sampled matches. Since this study will focus on the matches themselves and not how opendota samples combined with each match being a single self-contained event, no matches will be excluded based upon this discrepency.
 
 The variable 'duration' represents the length in time (seconds) each match lasted for and will be helpful towards indicating if a match was competitive between the sides or if one team dominated and quickly won the game.
 
@@ -89,16 +90,16 @@ radiant_win
 # Collect key variables from 'match' data frame
 MatchDF <- match %>% select(1 : 5, 10)
 
-# Convert start time from seconds to date in MatchDF
+# Convert start time from seconds to POSIXct date in MatchDF
 MatchDF <- MatchDF %>% mutate(date = as.POSIXct(MatchDF$start_time, tz = "UTC", origin = "1970-01-01"))
 ```
 
 ### players.csv
 The 'players' data frame contains data from the same 50,000 matches recorded in 'match' for each player in each match.  Each match has ten players, five per side which is why this data frame has 500,000 observations.
 
-As mentioned before the variable 'match_id' will be used to link the two key data frames together.
+As mentioned before the variable 'match_id' will be used to link the two main data frames together, 'match' and 'players'.
 
-The variable 'account_id' is a number Devin applied to each new unique player that the dataset recorded.  0 represents a player who is playing anonymously but those recorded from 1 to 'r max(match$account_id)' represents unique players.
+The variable 'account_id' is a number Devin applied to each new unique player that the dataset recorded. Devin applied his own numbering to each account to save space since the orginal 'account_id' values were much larger.  0 represents a player who is playing anonymously but those recorded from 1 to 'r max(match$account_id)' represents unique players.
 
 The variable 'hero_id' represents an integer that when linked to 'Hero_Names' identifies which hero each player selected prior to each match.  This will be key in determining which heroes are best and which should be avoided when first starting out in the game. The range in 'hero_id' is from 0 - 112, however only 1 - 112 represents a unique hero.  0 represented an absent player but luckily there are only a few cases where this occurs.
 
@@ -123,7 +124,7 @@ glimpse(Tally0)
 # 'Tally0' shows us there are 35 matches that contain at least one hero_id 0, which represent unbalanced games since one side only has only four active players.
 ```
 
-The variable 'player_slot' contains integers ranging from 0-4 and 128-132 for each match.  0-4 represents those playing for the Radiant side and 128-132 for those playing for the Dire side.
+The variable 'player_slot' contains integers ranging from 0-4 and 128-132 for each match.  0-4 represents the 5 players playing for the Radiant side and 128-132 for those 5 players playing for the Dire side. A new variable will be generated to label which side each player is playing for where 0-4 = Radiant or "R" and 128-132 = Dire or "D".
 
 The variables 'kills', 'deaths' and 'assists' are player-vs-player (PvP) combat statistics collected per player which represent the number of enemy player kills scored per game, number of deaths the player suffered by enemy hands per game and number of assists per game achieved which represent the number of enemy player deaths each player significantly contributed to, but did not land the final hit on.  These variables will help to indicate how well each players' performance is relative to all the other player in the match. Further investigations could then link each player by their player_id assignment previously mentioned.
 
@@ -161,10 +162,15 @@ CombinedDF <- left_join(PlayersDF, MatchDF, by = "match_id")
 
 # Add column with hero names represented by 'Hero_Names' data frame.
 CombinedDF <- left_join(CombinedDF, Hero_Names, by = "hero_id")
+
+# remove 'MatchDF' and 'PlayersDF' from the project as these are interim steps to combining the dataset into a cleaner singe data frame.
 rm(MatchDF)
 rm(PlayersDF)
 
-# 'MatchDF' and 'PlayersDF' have been removed from the project as these are interim steps to combining the dataset into a cleaner singe data frame.
+# add variable "team" whereby 'player_slot' values 0-4 represent Radiant team ("R") and 128-132 represent Dire team ("D").
+
+CombinedDF$team <- CombinedDF %>% ifelse(player_slot > 5, "R", "D")
+
 ```
 
 'CombinedDF' is a collection of all the data that will be discussed in this report and will be the source for all studies going forward in this project.
