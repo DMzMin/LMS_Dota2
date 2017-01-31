@@ -7,6 +7,9 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
 ```
 
 ## Introduction
@@ -86,7 +89,7 @@ tower_status_radiant
 tower_status_dire
 radiant_win
 
-```{r Clean up 'match' DF, include=FALSE}
+```{r "Clean up 'match' DF", include=FALSE}
 # Collect key variables from 'match' data frame
 MatchDF <- match %>% select(1 : 5, 10)
 
@@ -103,7 +106,7 @@ The variable 'account_id' is a number Devin applied to each new unique player th
 
 The variable 'hero_id' represents an integer that when linked to 'Hero_Names' identifies which hero each player selected prior to each match.  This will be key in determining which heroes are best and which should be avoided when first starting out in the game. The range in 'hero_id' is from 0 - 112, however only 1 - 112 represents a unique hero.  0 represented an absent player but luckily there are only a few cases where this occurs.
 
-```{r Identifting '0' hero_id occurrences, include=FALSE}
+```{r "Identifting '0' hero_id occurrences", include=FALSE}
 # Count the number of times each hero_id occers per match, identify where individual matches have more that one of the same hero_id.
 TallyDF <- players %>% 
   group_by(match_id, hero_id) %>% 
@@ -169,14 +172,14 @@ rm(PlayersDF)
 
 # add variable "team" whereby 'player_slot' values 0-4 represent Radiant team ("R") and 128-132 represent Dire team ("D").
 
-CombinedDF$team <- CombinedDF %>% ifelse(player_slot > 5, "R", "D")
+CombinedDF$team <- ifelse(CombinedDF$player_slot < 5, "R", "D")
 
 ```
 
 'CombinedDF' is a collection of all the data that will be discussed in this report and will be the source for all studies going forward in this project.
 
 ## Exploring the Data
-This section will cover preliminary investigations not already covered in this document.Some of these investigations will lead to interesting points of view while others may not reveal anything at all.  Key things to look at include:
+This section will cover preliminary investigations not already covered in previous sections. Some of these investigations will lead to interesting points of view while others may not reveal anything at all.  Key things to look at include:
 
 1) narrowing down the dataset to 'competitive matches only'.  This will require a more detailed statistical analysis into match durations to define a match duration window for the data we wish to work with.
 
