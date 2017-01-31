@@ -40,7 +40,7 @@ match <- read.csv("match.csv")
 glimpse(match)
 ```
 
-The data frame 'match' cotains information regarding 50,000 matches Devin has collected together.  The 'match_id' variable is an integer number that Devin updated with numbers from 0 to 49,999, which we also find in 'players' data frame.  Devin did this to save space in his files since the orginal 'match_id' values from Dota2 servers is much longer.  This variable is also present in the 'players' data frame and will be used to link them together.
+The data frame 'match' contains information regarding 50,000 matches Devin has collected together.  The 'match_id' variable is an integer number that Devin updated with numbers from 0 to 49,999, which we also find in 'players' data frame.  Devin did this to save space in his files since the orginal 'match_id' values from Dota2 servers is much longer.  This variable is also present in the 'players' data frame and will be used to link them together.
 
 The variable 'start_time' is an integer variable that represents the time in seconds when each match started based upon the default date / time stamp of 00:00, 01/01/1970, UTC since DOTA 2 is made by Valve Corporation who are based in Washington, USA.  The 'start_time' variable also generates an interesting histogram.
 
