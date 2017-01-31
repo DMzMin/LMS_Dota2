@@ -61,7 +61,7 @@ The two variables 'tower_status_radiant' and 'tower_status_dire' represent the s
 
 When plotting the difference between tower status against duration and coloring the plot by the radiant win condition we see some interesting results.
 
-```{r Tower Status Plot, include=FALSE}
+```{r Tower_Status_Plot, include=FALSE}
 # TowerStat_R is the health difference between Radiant and Dire towers at the end of each game.
 TowerStat_R <- match$tower_status_radiant - match$tower_status_dire
 
@@ -89,7 +89,7 @@ tower_status_radiant
 tower_status_dire
 radiant_win
 
-```{r "Clean up 'match' DF", include=FALSE}
+```{r MatchDF, include=FALSE}
 # Collect key variables from 'match' data frame
 MatchDF <- match %>% select(1 : 5, 10)
 
@@ -106,7 +106,7 @@ The variable 'account_id' is a number Devin applied to each new unique player th
 
 The variable 'hero_id' represents an integer that when linked to 'Hero_Names' identifies which hero each player selected prior to each match.  This will be key in determining which heroes are best and which should be avoided when first starting out in the game. The range in 'hero_id' is from 0 - 112, however only 1 - 112 represents a unique hero.  0 represented an absent player but luckily there are only a few cases where this occurs.
 
-```{r "Identifting '0' hero_id occurrences", include=FALSE}
+```{r 0_occurrences, include=FALSE}
 # Count the number of times each hero_id occers per match, identify where individual matches have more that one of the same hero_id.
 TallyDF <- players %>% 
   group_by(match_id, hero_id) %>% 
@@ -151,13 +151,13 @@ all_gold_gains
 all_gold_loss (death loss and purchases)
 all_xp_gains
 
-```{r Clean Up 'players' Data Frame, include=FALSE}
+```{r PlayersDF, include=FALSE}
 PlayersDF <- players %>% select(1 : 17)
 ```
 
 Both 'match' and 'players' data frame will be brought together by the 'match_id' variable.
 
-```{r Combining Data into one Frame, include=FALSE}
+```{r CombinedDF, include=FALSE}
 # Combine PlayersDF and MatchDF into CombinedDF
 CombinedDF <- left_join(PlayersDF, MatchDF, by = "match_id")
 
