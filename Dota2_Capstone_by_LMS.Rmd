@@ -187,6 +187,13 @@ This section will cover preliminary investigations not already covered in previo
 
 3) summing 'kills', 'deaths', 'assists' and 'denies' by team per match and examining these grouped by 'match_id' and seperated out by win condition.  These variables will also be examined by 'hero_id' per match to understand how each hero performs.
 
+```{r Tally_by_teams, include=FALSE}
+Tallykills <- CombinedDF %>% group_by(match_id, team, radiant_win) %>% tally(kills)
+Tallydeaths <- CombinedDF %>% group_by(match_id, team, radiant_win) %>% tally(deaths)
+Tallyassists <- CombinedDF %>% group_by(match_id, team, radiant_win) %>% tally(assists)
+```
+
+
 4) comparing variables against the strength of the team wins / losses as defined by 'TowerStat_R' cut-offs.  This will see if any of these variables have any correlation to the strength of the win / loss.
 
 5)
