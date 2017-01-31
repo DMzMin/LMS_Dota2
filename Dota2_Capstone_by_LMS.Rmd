@@ -23,7 +23,7 @@ Before the matches begin each player selects a hero from 112 different possibili
 With these initial questions in mind lets take a look at the dataset.
 
 ## The Dataset & Initial Exploratory Data Analysis
-A dataset containing a wide variety of information posted to Kaggle by user Devin [link](https://www.kaggle.com/devinanzelmo/dota-2-matches) has a very interesting range of variables set out accross several CSV files.  Devin has obtained this data from a data mining website called opendota.com which collects match data from the Dota2 game servers.
+A dataset containing a wide variety of information posted to Kaggle by user Devin www.kaggle.com/devinanzelmo/dota-2-matches [link](https://www.kaggle.com/devinanzelmo/dota-2-matches) has a very interesting range of variables set out accross several CSV files.  Devin has obtained this data from a data mining website called opendota.com [link](https://www.opendota.com) which collects match data from the Dota2 game servers.
 
 This study will mainly focus on the analysis of two of these files:
 
@@ -34,28 +34,22 @@ Other useful files that will support this work include:
 
 hero_names.csv  - contains 112 observations over 3 variables
 
+### match.csv
 ```{r Dataset}
 match <- read.csv("match.csv")
-players <- read.csv("players.csv")
-Hero_Names <- read.csv("hero_names.csv")
-
 glimpse(match)
-glimpse(players)
-glimpse(Hero_Names)
-
-# The data frame 'Hero_Names' holds the key for the 'hero_id' variable in the 'players' data frame.  This key data frame will be tidied up and prepared for applying the key to the 'hero_id' variable.
-Hero_Names[1] <- NULL
-colnames(Hero_Names) <- c("hero_id", "Hero_Names")
 ```
 
-### match.csv
 The data frame 'match' cotains information regarding 50,000 matches Devin has collected together.  The 'match_id' variable is an integer number that Devin updated with numbers from 0 to 49,999, which we also find in 'players' data frame.  Devin did this to save space in his files since the orginal 'match_id' values from Dota2 servers is much longer.  This variable is also present in the 'players' data frame and will be used to link them together.
 
 The variable 'start_time' is an integer variable that represents the time in seconds when each match started based upon the default date / time stamp of 00:00, 01/01/1970, UTC since DOTA 2 is made by Valve Corporation who are based in Washington, USA.  The 'start_time' variable also generates an interesting histogram.
 
-`r hist(match$start_time, breaks = 50, col = "red")`
+```{r start_time_histogram}
+H1 <- hist(match$start_time, breaks = 50, col = "red")
+print(H1)
+```
 
-which shows that the dataset contains many more matches after around the 1447300000 second mark than before it.  When asking Devin about this he responded saying that this is most likely caused by the way [link](https://www.opendota.com) sampled the Dota2 game servers.  He believe the sudden increase in matches collected resulted from opendota improving the way they sampled matches. Since this study will focus on the matches themselves and not how opendota samples combined with each match being a single self-contained event, no matches will be excluded based upon this discrepency.
+This shows that the dataset contains many more matches after around the 1447300000 second mark than before it.  When asking Devin about this he responded saying that this is most likely caused by the way www.opendota.com [link](https://www.opendota.com) sampled the Dota2 game servers.  He believe the sudden increase in matches collected resulted from opendota improving the way they sampled matches. Since this study will focus on the matches themselves and not how opendota samples combined with each match being a single self-contained event, no matches will be excluded based upon this discrepency.
 
 The variable 'duration' represents the length in time (seconds) each match lasted for and will be helpful towards indicating if a match was competitive between the sides or if one team dominated and quickly won the game.
 
@@ -75,8 +69,8 @@ colnames(TvTowerStatus) <- c("Duration", "TowerStat_R", "Radiant_Win")
 
 # GGplot to compare match durations against difference between Radiant and Dire towers health coloured by radiant_win variable.
 
-ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
-
+G1 <- ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
+print(G1)
 # The x-axis represents match duration in seconds and the y-axis represents the difference between the sum of total tower health for each side when the game ends, with positive values representing the Radiant sides' towers having more health and negative values representing the Dire sides' towers having more health. The colour differentiates which side won from the perspective of the Radiant side.
 ```
 
@@ -102,13 +96,18 @@ MatchDF <- MatchDF %>% mutate(date = as.POSIXct(MatchDF$start_time, tz = "UTC", 
 ```
 
 ### players.csv
+```{r Dataset}
+players <- read.csv("players.csv")
+glimpse(players)
+```
+
 The 'players' data frame contains data from the same 50,000 matches recorded in 'match' for each player in each match.  Each match has ten players, five per side which is why this data frame has 500,000 observations.
 
 As mentioned before the variable 'match_id' will be used to link the two main data frames together, 'match' and 'players'.
 
 The variable 'account_id' is a number Devin applied to each new unique player that the dataset recorded. Devin applied his own numbering to each account to save space since the orginal 'account_id' values were much larger.  0 represents a player who is playing anonymously but those recorded from 1 to `r max(match$account_id)` represents unique players.
 
-The variable 'hero_id' represents an integer that when linked to 'Hero_Names' identifies which hero each player selected prior to each match.  This will be key in determining which heroes are best and which should be avoided when first starting out in the game. The range in 'hero_id' is from 0 - 112, however only 1 - 112 represents a unique hero.  0 represented an absent player but luckily there are only a few cases where this occurs.
+The variable 'hero_id' represents an integer that when linked to 'hero_names.csv' identifies which hero each player selected prior to each match.  This will be key in determining which heroes are best and which should be avoided when first starting out in the game. The range in 'hero_id' is from 0 - 112, however only 1 - 112 represents a unique hero.  0 represented an absent player but luckily there are only a few cases where this occurs.
 
 ```{r 0_occurrences}
 # Count the number of times each hero_id occers per match, identify where individual matches have more that one of the same hero_id.
@@ -159,7 +158,21 @@ all_xp_gains
 PlayersDF <- players %>% select(1 : 17)
 ```
 
-Both 'match' and 'players' data frame will be brought together by the 'match_id' variable.
+## hero_names.csv
+```{r Dataset}
+Hero_Names <- read.csv("hero_names.csv")
+glimpse(Hero_Names)
+```
+
+The data frame 'Hero_Names' holds the key for the 'hero_id' variable in the 'players' data frame.  This key data frame will be tidied up and prepared for applying the key to the 'hero_id' variable.  The first column 'name' holds duplicate information and will be removed.  The remaining two columns will be named accordingly: "hero_id" and "Hero_Names".
+
+```{r Dataset}
+Hero_Names["name"] <- NULL
+colnames(Hero_Names) <- c("hero_id", "Hero_Names")
+```
+
+## CombinedDF Data Frame
+Both 'match' and 'players' data frames have been cleaned up and contain only pertinent data to the project. They will be brought together by the common 'match_id' variable both data frames have.
 
 ```{r CombinedDF}
 # Combine PlayersDF and MatchDF into CombinedDF
@@ -173,11 +186,13 @@ CombinedDF <- left_join(CombinedDF, Hero_Names, by = "hero_id")
 # remove 'MatchDF' and 'PlayersDF' from the project as these are interim steps to combining the dataset into a cleaner singe data frame.
 rm(MatchDF)
 rm(PlayersDF)
+```
 
+As discussed before a new variable 'team' will be added to indicate which team, Radiant (R) or Dire(D), each player is playing for during each match.
+
+```{r Team_Names}
 # add variable "team" whereby 'player_slot' values 0-4 represent Radiant team ("R") and 128-132 represent Dire team ("D").
-
 CombinedDF$team <- ifelse(CombinedDF$player_slot < 5, "R", "D")
-
 ```
 
 'CombinedDF' is a collection of all the data that will be discussed in this report and will be the source for all studies going forward in this project.
