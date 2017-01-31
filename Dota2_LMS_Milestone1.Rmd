@@ -1,0 +1,197 @@
+---
+title: "Dota 2 Capstone Report - Milestone 1"
+author: "Louis MS"
+date: "31 January 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+## Introduction
+
+Dota 2 (Defence Of The Ancients 2) is a popular free-to-play multiplayer online battle arena (MOBA) that consists of two teams of five players against each other who fight for two sides; the Radiant and the Dire.  The objective of the game is for each team to gain access to the enemy base and destroy their large structure called an ‘Ancient’.  Each base is linked by three paths commonly referred to as ‘top, middle or lower lanes’.  Each lane has three towers and two barracks.  The towers act as defensive structures that automatically attack enemy units and the barracks act as spawn locations for AI-controlled units called ‘creeps’ that go out in waves along their corresponding lanes.  These will also automatically attack enemy units and structures they encounter in their lanes.  The role for the human players is to escort their creep to the enemy base, helping to remove enemy towers, creep and players while also defending their own towers from the enemy waves of creep and players.  Figure 1 shows the minimap of a Dota 2 game showing the locations of all towers, barracks and Ancients in the game.
+
+![Figure 1: Dota 2 mini map at start of the game where cubes (11/side) represent tower positions for Radiant (green) and Dire (red), smaller double-cubes (6/side)represent barracks location and non-cube (1/side) represents ‘Ancient’ location] (images/Dota_2_minimap.jpg)
+
+Before the matches begin each player selects a hero from 112 different possibilities.  This large number to select from when first starting out in Dota 2 can be daunting.  It is advisable to get familiar with a range of different characters when first starting out but how do you choose which hero to try first?  To save time it is important to initially become familiar with the most successful hero but how can we determine this?  Once we have selected the hero we want, what is the best strategy?  Should we try to gather as much gold as we can?  Or should we gather xp / kills instead?  Or perhaps a balance between these variables are more likely to generate a better performance and win condition?
+
+With these initial questions in mind lets take a look at the dataset.
+
+## The Dataset & Initial Exploratory Data Analysis
+A dataset containing a wide variety of information posted to Kaggle by user Devin www.kaggle.com/devinanzelmo/dota-2-matches [link](https://www.kaggle.com/devinanzelmo/dota-2-matches) has a very interesting range of variables set out accross several CSV files.  Devin has obtained this data from a data mining website called opendota.com [link](https://www.opendota.com) which collects match data from the Dota2 game servers.
+
+This study will mainly focus on the analysis of two of these files:
+
+match.csv    	  - contains 50,000 observations over 10 variable
+players.csv 	  - contains 500,000 observations over 73 variables
+
+Other useful files that will support this work include:
+
+hero_names.csv  - contains 112 observations over 3 variables
+
+### match.csv
+```{r match}
+match <- read.csv("match.csv")
+glimpse(match)
+```
+
+The data frame 'match' contains information regarding 50,000 matches Devin has collected together.  The 'match_id' variable is an integer number that Devin updated with numbers from 0 to 49,999, which we also find in 'players' data frame.  Devin did this to save space in his files since the orginal 'match_id' values from Dota2 servers is much longer.  This variable is also present in the 'players' data frame and will be used to link them together.
+
+The variable 'start_time' is an integer variable that represents the time in seconds when each match started based upon the default date / time stamp of 00:00, 01/01/1970, UTC since DOTA 2 is made by Valve Corporation who are based in Washington, USA.  The 'start_time' variable also generates an interesting histogram.
+
+```{r start_time_histogram}
+H1 <- hist(match$start_time, breaks = 50, col = "red")
+```
+
+This shows that the dataset contains many more matches after around the 1447300000 second mark than before it.  When asking Devin about this he responded saying that this is most likely caused by the way www.opendota.com [link](https://www.opendota.com) sampled the Dota2 game servers.  He believe the sudden increase in matches collected resulted from opendota improving the way they sampled matches. Since this study will focus on the matches themselves and not how opendota samples combined with each match being a single self-contained event, no matches will be excluded based upon this discrepency.
+
+The variable 'duration' represents the length in time (seconds) each match lasted for and will be helpful towards indicating if a match was competitive between the sides or if one team dominated and quickly won the game.
+
+the variable 'radiant_win' is a logical with either 'True' or 'False' indicating if the Radiant team won or lost the match.  This combined with 'duration' will help to determine how competitive each match was.
+
+The two variables 'tower_status_radiant' and 'tower_status_dire' represent the sum of all tower health values at the end of the game when one of the 'Ancient' structures are destroyed, giving the attacking team the win.  These variables will indicate the effective damage each side has inflicted upon the enemy towers during the match, which one would expect to favor the winning team.
+
+When plotting the difference between tower status against duration and coloring the plot by the radiant win condition we see some interesting results.
+
+```{r Tower_Status_Plot}
+# TowerStat_R is the health difference between Radiant and Dire towers at the end of each game.
+TowerStat_R <- match$tower_status_radiant - match$tower_status_dire
+
+# data frame containing match_duration, TowerStat_R and radiant_win status
+TvTowerStatus <- data.frame(match$duration, TowerStat_R, match$radiant_win)
+colnames(TvTowerStatus) <- c("Duration", "TowerStat_R", "Radiant_Win")
+
+# GGplot to compare match durations against difference between Radiant and Dire towers health coloured by radiant_win variable.
+
+G1 <- ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
+print(G1)
+```
+The x-axis represents match duration in seconds and the y-axis represents the difference between the sum of total tower health for each side when the game ends, with positive values representing the Radiant sides' towers having more health and negative values representing the Dire sides' towers having more health. The colour differentiates which side won from the perspective of the Radiant side.
+
+This initial plot shows us some interesting points of view.  Firstly the x-axis range representing Duration goes from `r min(match$duration)` seconds to `r max(match$duration)` seconds.  It is considered that some of the matches were too short or too long to have been played at a competitive level.  Further work is required to determine what duration range should be applied to the dataset to remove matches that are considered to have not been played at a competitive level.
+
+The second key observation from this initial plot is that there are cases where although one teams' towers have more health they do not necessarily win the match, which is why that within the +500 to -500 TowerStat_R range we find both teams winning and losing matches.  This can be used to group each match into either a dominant win for each side or a close win for each side.
+
+For this study the following variables from 'match' will be used:
+
+match_id
+start_time
+duration
+tower_status_radiant
+tower_status_dire
+radiant_win
+
+```{r MatchDF}
+# Collect key variables from 'match' data frame
+MatchDF <- match %>% select(1 : 5, 10)
+
+# Convert start time from seconds to POSIXct date in MatchDF
+MatchDF <- MatchDF %>% mutate(date = as.POSIXct(MatchDF$start_time, tz = "UTC", origin = "1970-01-01"))
+```
+
+### players.csv
+```{r players}
+players <- read.csv("players.csv")
+glimpse(players)
+```
+
+The 'players' data frame contains data from the same 50,000 matches recorded in 'match' for each player in each match.  Each match has ten players, five per side which is why this data frame has 500,000 observations.
+
+As mentioned before the variable 'match_id' will be used to link the two main data frames together, 'match' and 'players'.
+
+The variable 'account_id' is a number Devin applied to each new unique player that the dataset recorded. Devin applied his own numbering to each account to save space since the orginal 'account_id' values were much larger.  0 represents a player who is playing anonymously but those recorded from 1 to `r max(match$account_id)` represents unique players.
+
+The variable 'hero_id' represents an integer that when linked to 'hero_names.csv' identifies which hero each player selected prior to each match.  This will be key in determining which heroes are best and which should be avoided when first starting out in the game. The range in 'hero_id' is from 0 - 112, however only 1 - 112 represents a unique hero.  0 represented an absent player but luckily there are only a few cases where this occurs.
+
+```{r 0_occurrences}
+# Count the number of times each hero_id occers per match, identify where individual matches have more that one of the same hero_id.
+TallyDF <- players %>% 
+  group_by(match_id, hero_id) %>% 
+  tally() %>% 
+  filter(n>1)
+
+TallyDF
+
+# From the tally collected in 'TallyDF' we see that only two matches have more than one of the same hero_id, and in both cases it is '0'.  These matches are match_id 2134 and 37020.
+
+Tally0 <- players %>% 
+  group_by(match_id, hero_id) %>% 
+  tally() %>% 
+  filter(hero_id == 0)
+
+glimpse(Tally0)
+
+# 'Tally0' shows us there are 35 matches that contain at least one hero_id 0, which represent unbalanced games since one side only has only four active players.
+```
+
+The variable 'player_slot' contains integers ranging from 0-4 and 128-132 for each match.  0-4 represents the 5 players playing for the Radiant side and 128-132 for those 5 players playing for the Dire side. A new variable will be generated to label which side each player is playing for where 0-4 = Radiant or "R" and 128-132 = Dire or "D".
+
+The variables 'kills', 'deaths' and 'assists' are player-vs-player (PvP) combat statistics collected per player which represent the number of enemy player kills scored per game, number of deaths the player suffered by enemy hands per game and number of assists per game achieved which represent the number of enemy player deaths each player significantly contributed to, but did not land the final hit on.  These variables will help to indicate how well each players' performance is relative to all the other player in the match. Further investigations could then link each player by their player_id assignment previously mentioned.
+
+The variable 'denies' is a count of how many allied creep below 50% a player has killed to stop enemy players scoring last hits and gaining xp and gold.  This is another variable that could be studied in combination with others to see if this has any influence on the win condition.
+
+The variables 'gold_per_min', 'all_gold_gains', 'all_gold_loss' (by death or purchases), 'xp_per_min' (experience points per minute) and 'all_xp_gains' are all general statistics not necessarily tied to PvP combat that are believed to have influence on players' performances and contribute to win conditions.
+
+For this study the following variables from 'players' will be used:
+
+match_id
+account_id
+hero_id
+player_slot
+kills
+deaths
+assists
+denies
+gold_per_min
+xp_per_min
+all_gold_gains
+all_gold_loss (death loss and purchases)
+all_xp_gains
+
+```{r PlayersDF}
+PlayersDF <- players %>% select(1 : 17)
+```
+
+## hero_names.csv
+```{r Hero_Names}
+Hero_Names <- read.csv("hero_names.csv")
+glimpse(Hero_Names)
+```
+
+The data frame 'Hero_Names' holds the key for the 'hero_id' variable in the 'players' data frame.  This key data frame will be tidied up and prepared for applying the key to the 'hero_id' variable.  The first column 'name' holds duplicate information and will be removed.  The remaining two columns will be named accordingly: "hero_id" and "Hero_Names".
+
+```{r HN_clean}
+Hero_Names["name"] <- NULL
+colnames(Hero_Names) <- c("hero_id", "Hero_Names")
+```
+
+## CombinedDF Data Frame
+Both 'match' and 'players' data frames have been cleaned up and contain only pertinent data to the project. They will be brought together by the common 'match_id' variable both data frames have.
+
+```{r CombinedDF}
+# Combine PlayersDF and MatchDF into CombinedDF
+CombinedDF <- left_join(PlayersDF, MatchDF, by = "match_id")
+
+# 'CombinedDF' contains 500,000 observation over 23 variables, 7 variables from 'MatchDF' and 17 variables from 'PlayersDF', with match_id representing the overlapping variable giving 23 variables in total.
+
+# Add column with hero names represented by 'Hero_Names' data frame.
+CombinedDF <- left_join(CombinedDF, Hero_Names, by = "hero_id")
+
+# remove 'MatchDF' and 'PlayersDF' from the project as these are interim steps to combining the dataset into a cleaner singe data frame.
+rm(MatchDF)
+rm(PlayersDF)
+```
+
+As discussed before a new variable 'team' will be added to indicate which team, Radiant (R) or Dire(D), each player is playing for during each match.
+
+```{r Team_Names}
+# add variable "team" whereby 'player_slot' values 0-4 represent Radiant team ("R") and 128-132 represent Dire team ("D").
+CombinedDF$team <- ifelse(CombinedDF$player_slot < 5, "R", "D")
+```
+
+'CombinedDF' is a collection of all the data that will be discussed in this report and will be the source for all studies going forward in this project.
