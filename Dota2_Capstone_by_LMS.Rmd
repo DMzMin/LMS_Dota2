@@ -51,7 +51,11 @@ colnames(Hero_Names) <- c("hero_id", "Hero_Names")
 ### match.csv
 The data frame 'match' cotains information regarding 50,000 matches Devin has collected together.  The 'match_id' variable is an integer number that Devin updated with numbers from 0 to 49,999, which we also find in 'players' data frame.  Devin did this to save space in his files since the orginal 'match_id' values from Dota2 servers is much longer.  This variable is also present in the 'players' data frame and will be used to link them together.
 
-The variable 'start_time' is an integer variable that represents the time in seconds when each match started based upon the default date / time stamp of 00:00, 01/01/1970, UTC since DOTA 2 is made by Valve Corporation who are based in Washington, USA.  The 'start_time' variable also generates an interesting histogram 'r hist(match$start_time, breaks = 50, col = "red")' which shows that the dataset contains many more matches after around the 1447300000 second mark than before it.  When asking Devin about this he responded saying that this is most likely caused by the way [link](https://www.opendota.com) sampled the Dota2 game servers.  He believe the sudden increase in matches collected resulted from opendota improving the way they sampled matches. Since this study will focus on the matches themselves and not how opendota samples combined with each match being a single self-contained event, no matches will be excluded based upon this discrepency.
+The variable 'start_time' is an integer variable that represents the time in seconds when each match started based upon the default date / time stamp of 00:00, 01/01/1970, UTC since DOTA 2 is made by Valve Corporation who are based in Washington, USA.  The 'start_time' variable also generates an interesting histogram.
+
+`r hist(match$start_time, breaks = 50, col = "red")`
+
+which shows that the dataset contains many more matches after around the 1447300000 second mark than before it.  When asking Devin about this he responded saying that this is most likely caused by the way [link](https://www.opendota.com) sampled the Dota2 game servers.  He believe the sudden increase in matches collected resulted from opendota improving the way they sampled matches. Since this study will focus on the matches themselves and not how opendota samples combined with each match being a single self-contained event, no matches will be excluded based upon this discrepency.
 
 The variable 'duration' represents the length in time (seconds) each match lasted for and will be helpful towards indicating if a match was competitive between the sides or if one team dominated and quickly won the game.
 
@@ -76,7 +80,7 @@ ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) 
 # The x-axis represents match duration in seconds and the y-axis represents the difference between the sum of total tower health for each side when the game ends, with positive values representing the Radiant sides' towers having more health and negative values representing the Dire sides' towers having more health. The colour differentiates which side won from the perspective of the Radiant side.
 ```
 
-This initial plot shows us some interesting points of view.  Firstly the x-axis range representing Duration goes from 'r min(match$duration)' seconds to 'r max(match$duration)' seconds.  It is considered that some of the matches were too short or too long to have been played at a competitive level.  Further work is required to determine what duration range should be applied to the dataset to remove matches that are considered to have not been played at a competitive level.
+This initial plot shows us some interesting points of view.  Firstly the x-axis range representing Duration goes from `r min(match$duration)` seconds to `r max(match$duration)` seconds.  It is considered that some of the matches were too short or too long to have been played at a competitive level.  Further work is required to determine what duration range should be applied to the dataset to remove matches that are considered to have not been played at a competitive level.
 
 The second key observation from this initial plot is that there are cases where although one teams' towers have more health they do not necessarily win the match, which is why that within the +500 to -500 TowerStat_R range we find both teams winning and losing matches.  This can be used to group each match into either a dominant win for each side or a close win for each side.
 
@@ -102,7 +106,7 @@ The 'players' data frame contains data from the same 50,000 matches recorded in 
 
 As mentioned before the variable 'match_id' will be used to link the two main data frames together, 'match' and 'players'.
 
-The variable 'account_id' is a number Devin applied to each new unique player that the dataset recorded. Devin applied his own numbering to each account to save space since the orginal 'account_id' values were much larger.  0 represents a player who is playing anonymously but those recorded from 1 to 'r max(match$account_id)' represents unique players.
+The variable 'account_id' is a number Devin applied to each new unique player that the dataset recorded. Devin applied his own numbering to each account to save space since the orginal 'account_id' values were much larger.  0 represents a player who is playing anonymously but those recorded from 1 to `r max(match$account_id)` represents unique players.
 
 The variable 'hero_id' represents an integer that when linked to 'Hero_Names' identifies which hero each player selected prior to each match.  This will be key in determining which heroes are best and which should be avoided when first starting out in the game. The range in 'hero_id' is from 0 - 112, however only 1 - 112 represents a unique hero.  0 represented an absent player but luckily there are only a few cases where this occurs.
 
