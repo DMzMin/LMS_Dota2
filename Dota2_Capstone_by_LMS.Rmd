@@ -35,7 +35,7 @@ Other useful files that will support this work include:
 hero_names.csv  - contains 112 observations over 3 variables
 
 ### match.csv
-```{r Dataset}
+```{r match}
 match <- read.csv("match.csv")
 glimpse(match)
 ```
@@ -46,7 +46,6 @@ The variable 'start_time' is an integer variable that represents the time in sec
 
 ```{r start_time_histogram}
 H1 <- hist(match$start_time, breaks = 50, col = "red")
-print(H1)
 ```
 
 This shows that the dataset contains many more matches after around the 1447300000 second mark than before it.  When asking Devin about this he responded saying that this is most likely caused by the way www.opendota.com [link](https://www.opendota.com) sampled the Dota2 game servers.  He believe the sudden increase in matches collected resulted from opendota improving the way they sampled matches. Since this study will focus on the matches themselves and not how opendota samples combined with each match being a single self-contained event, no matches will be excluded based upon this discrepency.
@@ -71,8 +70,8 @@ colnames(TvTowerStatus) <- c("Duration", "TowerStat_R", "Radiant_Win")
 
 G1 <- ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
 print(G1)
-# The x-axis represents match duration in seconds and the y-axis represents the difference between the sum of total tower health for each side when the game ends, with positive values representing the Radiant sides' towers having more health and negative values representing the Dire sides' towers having more health. The colour differentiates which side won from the perspective of the Radiant side.
 ```
+The x-axis represents match duration in seconds and the y-axis represents the difference between the sum of total tower health for each side when the game ends, with positive values representing the Radiant sides' towers having more health and negative values representing the Dire sides' towers having more health. The colour differentiates which side won from the perspective of the Radiant side.
 
 This initial plot shows us some interesting points of view.  Firstly the x-axis range representing Duration goes from `r min(match$duration)` seconds to `r max(match$duration)` seconds.  It is considered that some of the matches were too short or too long to have been played at a competitive level.  Further work is required to determine what duration range should be applied to the dataset to remove matches that are considered to have not been played at a competitive level.
 
@@ -96,7 +95,7 @@ MatchDF <- MatchDF %>% mutate(date = as.POSIXct(MatchDF$start_time, tz = "UTC", 
 ```
 
 ### players.csv
-```{r Dataset}
+```{r players}
 players <- read.csv("players.csv")
 glimpse(players)
 ```
@@ -159,14 +158,14 @@ PlayersDF <- players %>% select(1 : 17)
 ```
 
 ## hero_names.csv
-```{r Dataset}
+```{r Hero_Names}
 Hero_Names <- read.csv("hero_names.csv")
 glimpse(Hero_Names)
 ```
 
 The data frame 'Hero_Names' holds the key for the 'hero_id' variable in the 'players' data frame.  This key data frame will be tidied up and prepared for applying the key to the 'hero_id' variable.  The first column 'name' holds duplicate information and will be removed.  The remaining two columns will be named accordingly: "hero_id" and "Hero_Names".
 
-```{r Dataset}
+```{r HN_clean}
 Hero_Names["name"] <- NULL
 colnames(Hero_Names) <- c("hero_id", "Hero_Names")
 ```
