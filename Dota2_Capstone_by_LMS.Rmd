@@ -226,6 +226,15 @@ Tallyassists <- CombinedDF %>% group_by(match_id, team, radiant_win) %>% tally(a
 ## Conclusions
 
 ## Areas of Further Study
+The full dataset posted by Devin contains many more csv files related to the data used in this project. Further studies should look to incorporate these data features into a deeper and more detailed study of this set.
 
 ## References and Further Reading
+Valve Corporation official Dota 2 website www.valvesoftware.com/games/dota2 [link](http://www.valvesoftware.com/games/dota2.html)
+Original dataset posted by Devin www.kaggle.com/devinanzelmo/d/devinanzelmo/dota-2-matches/a-quick-look-at-dota-2-dataset [link](https://www.kaggle.com/devinanzelmo/d/devinanzelmo/dota-2-matches/a-quick-look-at-dota-2-dataset)
+Source for Devin's dataset www.opendota.com [link](https://www.opendota.com/)
+Wikipedia page on Dota 2 en.wikipedia.org/wiki/Dota_2 [link](https://en.wikipedia.org/wiki/Dota_2)
+
 ### Acknowledgements
+Many thanks to Devin for collecting and publicly posting an incredible dataset to Kaggle
+Many thanks to Dr Guy Maskall for his guidance and support throughout this project, impossible without him
+Many thanks to my wife for her encouragement and patience while listening to my struggles while doing this course
