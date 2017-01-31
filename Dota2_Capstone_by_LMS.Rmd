@@ -71,6 +71,7 @@ colnames(TvTowerStatus) <- c("Duration", "TowerStat_R", "Radiant_Win")
 G1 <- ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
 print(G1)
 ```
+
 The x-axis represents match duration in seconds and the y-axis represents the difference between the sum of total tower health for each side when the game ends, with positive values representing the Radiant sides' towers having more health and negative values representing the Dire sides' towers having more health. The colour differentiates which side won from the perspective of the Radiant side.
 
 This initial plot shows us some interesting points of view.  Firstly the x-axis range representing Duration goes from `r min(match$duration)` seconds to `r max(match$duration)` seconds.  It is considered that some of the matches were too short or too long to have been played at a competitive level.  Further work is required to determine what duration range should be applied to the dataset to remove matches that are considered to have not been played at a competitive level.
