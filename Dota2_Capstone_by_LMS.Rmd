@@ -34,7 +34,7 @@ Other useful files that will support this work include:
 
 hero_names.csv  - contains 112 observations over 3 variables
 
-```{r Dataset, include=FALSE}
+```{r Dataset}
 match <- read.csv("match.csv")
 players <- read.csv("players.csv")
 Hero_Names <- read.csv("hero_names.csv")
@@ -61,7 +61,7 @@ The two variables 'tower_status_radiant' and 'tower_status_dire' represent the s
 
 When plotting the difference between tower status against duration and coloring the plot by the radiant win condition we see some interesting results.
 
-```{r Tower_Status_Plot, include=FALSE}
+```{r Tower_Status_Plot}
 # TowerStat_R is the health difference between Radiant and Dire towers at the end of each game.
 TowerStat_R <- match$tower_status_radiant - match$tower_status_dire
 
@@ -89,7 +89,7 @@ tower_status_radiant
 tower_status_dire
 radiant_win
 
-```{r MatchDF, include=FALSE}
+```{r MatchDF}
 # Collect key variables from 'match' data frame
 MatchDF <- match %>% select(1 : 5, 10)
 
@@ -106,7 +106,7 @@ The variable 'account_id' is a number Devin applied to each new unique player th
 
 The variable 'hero_id' represents an integer that when linked to 'Hero_Names' identifies which hero each player selected prior to each match.  This will be key in determining which heroes are best and which should be avoided when first starting out in the game. The range in 'hero_id' is from 0 - 112, however only 1 - 112 represents a unique hero.  0 represented an absent player but luckily there are only a few cases where this occurs.
 
-```{r 0_occurrences, include=FALSE}
+```{r 0_occurrences}
 # Count the number of times each hero_id occers per match, identify where individual matches have more that one of the same hero_id.
 TallyDF <- players %>% 
   group_by(match_id, hero_id) %>% 
@@ -151,13 +151,13 @@ all_gold_gains
 all_gold_loss (death loss and purchases)
 all_xp_gains
 
-```{r PlayersDF, include=FALSE}
+```{r PlayersDF}
 PlayersDF <- players %>% select(1 : 17)
 ```
 
 Both 'match' and 'players' data frame will be brought together by the 'match_id' variable.
 
-```{r CombinedDF, include=FALSE}
+```{r CombinedDF}
 # Combine PlayersDF and MatchDF into CombinedDF
 CombinedDF <- left_join(PlayersDF, MatchDF, by = "match_id")
 
@@ -187,7 +187,7 @@ This section will cover preliminary investigations not already covered in previo
 
 3) summing 'kills', 'deaths', 'assists' and 'denies' by team per match and examining these grouped by 'match_id' and seperated out by win condition.  These variables will also be examined by 'hero_id' per match to understand how each hero performs.
 
-```{r Tally_by_teams, include=FALSE}
+```{r Tally_by_teams}
 Tallykills <- CombinedDF %>% group_by(match_id, team, radiant_win) %>% tally(kills)
 Tallydeaths <- CombinedDF %>% group_by(match_id, team, radiant_win) %>% tally(deaths)
 Tallyassists <- CombinedDF %>% group_by(match_id, team, radiant_win) %>% tally(assists)
