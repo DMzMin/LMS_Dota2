@@ -197,7 +197,7 @@ CombinedDF$team <- ifelse(CombinedDF$player_slot < 5, "R", "D")
 
 'CombinedDF' is a collection of all the data that will be discussed in this report and will be the source for all studies going forward in this project.
 
-## Exploring the Data
+## Exploring the Data - Data analysis in depth
 This section will cover preliminary investigations not already covered in previous sections. Some of these investigations will lead to interesting points of view while others may not reveal anything at all.  Key things to look at include:
 
 1) narrowing down the dataset to 'competitive matches only'.  This will require a more detailed statistical analysis into match durations to define a match duration window for the data we wish to work with.
@@ -206,18 +206,70 @@ This section will cover preliminary investigations not already covered in previo
 
 3) summing 'kills', 'deaths', 'assists' and 'denies' by team per match and examining these grouped by 'match_id' and seperated out by win condition.  These variables will also be examined by 'hero_id' per match to understand how each hero performs.
 
-```{r Tally_by_teams}
-Tallykills <- CombinedDF %>% group_by(match_id, team, radiant_win) %>% tally(kills)
-Tallydeaths <- CombinedDF %>% group_by(match_id, team, radiant_win) %>% tally(deaths)
-Tallyassists <- CombinedDF %>% group_by(match_id, team, radiant_win) %>% tally(assists)
+### Team Statistics
+Here we will evaluate how each team performed as a team for each match.  The following section will look closely at the distributions of team kills, deaths and assists and how the difference between the two teams of these values correspond to radiant_win logical variable.  It is expected that the winning side should have more of each of these variables, but not in every case.  In the following all values will represent 'Radiant minus Dire' which will mean positive values indicate the Radiant team has more kills, deaths or assists and negaitve values indicate the Dire team has more kills, deaths or assists.
+
+#### Team Kills
+
+```{r tally_teams_kills}
+# count the number of team kills per match
+Tallykills <- CombinedDF %>% 
+  group_by(match_id, team, radiant_win) %>% 
+  tally(kills)
+
+# Tidy and label 'Tallykills' data frame
+Tallykills <- spread(Tallykills, team, n)
+colnames(Tallykills) <- c("match_id", "radiant_win", "Dire_Kills", "Radiant_Kills")
+
+# generate a bar plot of the difference between Radiant kills and Dire kills and colour/fill by radiant_win condition
+GGTK <- ggplot(Tallykills, aes(x = (Radiant_Kills - Dire_Kills), color = radiant_win, fill = radiant_win)) + geom_bar(position = "dodge")
+print(GGTK)
 ```
+
+This bar plot shows the distribution of the difference between Radiant team kills and Dire team kills coloured by the radiant_win variable.  Here we see two distinct normal distributions as would be expected.  It is noted that even when one team gains more kills it does not necessarily garantee a win, as we see both distributions' tails go significantly past the 0 crossing point.  On its own it cannot predict the win, but perhaps combined with other variables such as Tower Status we can better classify dominant wins and close matches.
+
+#### Team Deaths
+
+```{r tally_team_deaths}
+# count the number of team deaths per match
+Tallydeaths <- CombinedDF %>% 
+  group_by(match_id, team, radiant_win) %>% 
+  tally(deaths)
+
+# Tidy and label 'Tallydeaths' data frame
+Tallydeaths <- spread(Tallydeaths, team, n)
+colnames(Tallydeaths) <- c("match_id", "radiant_win", "Dire_Deaths", "Radiant_Deaths")
+
+# generate a bar plot of the difference between Radiant deaths and Dire deaths and colour/fill by radiant_win condition
+GGTD <- ggplot(Tallydeaths, aes(x = (Radiant_Deaths - Dire_Deaths), color = radiant_win, fill = radiant_win)) + geom_bar(position = "dodge")
+print(GGTD)
+```
+
+Here we see a very simialr distribution to that of the team kills, which is expected since most players die to other players.  Comparing this against team kills may distill how many deaths are attributed to the environment i.e. deaths to NPCs (non-playable characters) such as creep or jungle elements.
+
+#### Team Assists
+
+```{r tally_team_assists}
+# count the number of team assists per match
+Tallyassists <- CombinedDF %>% 
+  group_by(match_id, team, radiant_win) %>% 
+  tally(assists)
+
+# Tidy and label 'Tallyassists' data frame
+Tallyassists <- spread(Tallyassists, team, n)
+colnames(Tallyassists) <- c("match_id", "radiant_win", "Dire_Assists", "Radiant_Assists")
+
+# generate a bar plot of the difference between Radiant assists and Dire assists and colour/fill by radiant_win condition
+GGTA <- ggplot(Tallyassists, aes(x = (Radiant_Assists - Dire_Assists), color = radiant_win, fill = radiant_win)) + geom_bar(position = "dodge")
+print(GGTA)
+
+```
+
+The difference in assists plot is again very similar to team kills and team deaths as these distributions have very close affinity to one another.  Further work could explore the details of this and find cases that do not match this theory.
+
 
 
 4) comparing variables against the strength of the team wins / losses as defined by 'TowerStat_R' cut-offs.  This will see if any of these variables have any correlation to the strength of the win / loss.
-
-5)
-
-## Methods and Results
 
 ## Discussion
 ### Observations
