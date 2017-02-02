@@ -274,6 +274,7 @@ The difference in assists plot is again very similar to team kills and team deat
 ## Discussion
 ### Observations
 ### Limitations
+This project under-represents the full complexity of the game Dota 2 with elements such as lane occupation, time spent 'jungling', impact of neutral creep farming vs enemy creep farming, specific items bought, totem placements etc.  To accept any conclusions made in this report these complexities must be assumed to have no effect on the match win condition, which is not true as these elements can and do have significance to the win condition.  In some cases it may be possible to consider some of these elements to already be apart of other variables and assume their effect included in the study.  For example there may be little difference between farming neutral creeps and farming enemy creeps.  Some item purchases help improve xp gains or gold gains and may be assumed these effects to be included in the gold and xp tallys the data set has recorded.  However other elements such as certain heroes working as a better dynamic in one lane over other combinations of heroes is not recorded.
 
 ## Conclusions
 
