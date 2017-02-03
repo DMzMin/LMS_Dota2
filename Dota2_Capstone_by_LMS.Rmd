@@ -195,6 +195,47 @@ As discussed before a new variable 'team' will be added to indicate which team, 
 CombinedDF$team <- ifelse(CombinedDF$player_slot < 5, "R", "D")
 ```
 
+It is noted that the variable 'radiant_win' is not massively useful when looking at individual players or heroes as it requires the us to know which team they are on as well as the 'radiant_win' status to understand if they were on a winning or losing team.  Hense the following variable 'WL' will be added to 'CombinedDF'.
+
+```{r WL}
+# add column WL to CombinedDF to indicate Win/Loss for each individual player
+CombinedDF$WL <- ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "R", "Win", 
+                  ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "D", "Loss", 
+                  ifelse(CombinedDF$radiant_win == "False" & CombinedDF$team == "R", "Loss", "Win")))
+```
+
+Now that each hero is linked to their wins and losses over the 50,000 matches we can examine their performances.
+
+```{r Hero_WL(1)}
+# counting how many wins and losses each hero had over 50,000 matches
+A <- CombinedDF %>% group_by(Hero_Names, WL) %>% tally()
+A <- A %>% spread(WL, n)
+head(A, n=10)
+
+# plot a bar chart comparing wins and losses for each hero
+A_ggp <- ggplot(A) + 
+  geom_bar(aes(x = A$Hero_Names, y = A$Win, fill = "red"), stat = "identity") + 
+  geom_bar(aes(x = A$Hero_Names, y = A$Loss, fill = "blue"), stat = "identity") + 
+  theme(axis.text.x = element_text(angle = -90))
+print(A_ggp)
+```
+
+Here it is seen that each hero has a different win/loss ratio.  Lets examine the number in more detail.
+
+```{r Hero_WL(2)}
+# investigate Heroes difference between wins and losses, their win/loss ratio and the total matches they played
+B <- A %>% group_by(Hero_Names, Win - Loss, Win/Loss, Win + Loss)
+colnames(B) <- c("Hero_Names", "Loss", "Win", "Win-Loss", "Win/Loss", "Total")
+head(B, n=10)
+B_ggp <- ggplot(B, aes(x = Win, y = Loss)) + 
+  geom_point(stat = "identity") +
+  geom_abline(intercept = 0, slope = 1) +
+  coord_cartesian(xlim = c(-500, 12000), ylim = c(-500, 12000)) +
+    theme(axis.text.x = element_text(angle = -90))
+print(B_ggp)
+```
+
+
 'CombinedDF' is a collection of all the data that will be discussed in this report and will be the source for all studies going forward in this project.
 
 ## Exploring the Data - Data analysis in depth
