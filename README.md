@@ -8,5 +8,5 @@ Please see 'Dota2_Capstone_by_LMS.Rmd' document for project report.
 Please see 'xxx' for slides (to be made).
 
 ------------------------------------------
-!!This readme file STILL NEEDS MORE WORK!!
+!!This readme file STILL NEEDS MORE WORK!! Capstone project still in the making.
 ------------------------------------------
