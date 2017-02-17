@@ -1,0 +1,422 @@
+---
+title: "The Dataset and Initial EDA"
+author: "Louis MS"
+date: "17/02/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+
+# This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Wrangle
+```
+
+## **The Dataset & Initial Exploratory Data Analysis**
+A dataset containing a wide variety of information posted to Kaggle by user Devin www.kaggle.com/devinanzelmo/dota-2-matches [link](https://www.kaggle.com/devinanzelmo/dota-2-matches) has a very interesting range of variables set out accross several CSV files.  Devin has obtained this data from a data mining website called opendota.com [link](https://www.opendota.com) which collects match data from the Dota2 game servers. This study will mainly focus on the analysis of two of these files:
+
+**match.csv** - contains 50,000 observations over 10 variable
+
+**players.csv** - contains 500,000 observations over 73 variables
+
+Other useful files that will support this work include:
+
+**hero_names.csv** - originally contained 112 observations over 3 variables. This file will have more variables added based upon defined roles and classes from dota2.gamepedia.com/Role [link](http://dota2.gamepedia.com/Role).
+
+### **match.csv**
+```{r match}
+# read in match.csv file
+match <- read.csv("match.csv")
+glimpse(match)
+```
+
+#### **Quick Overview of match.csv**
+```{r Match Overview}
+# make a data frame of all variables in 'match' combined with their descriptions
+
+Variable <- as.character(c("match_id", "start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time", "game_mode", "radiant_win", "negative_votes", "positive_votes", "cluster"))
+
+Description <- as.character(c("unique interger to identify matches accross all files", "match start time in seconds since 00:00, 01/01/1970, UTC", "length of match in seconds", "total health of all Radiant towers at match end", "total health of all Dire towers at match end", "total health of all Dire barracks at match end", "total health of all Radiant barracks at match end", "timestamp in seconds of when first player is killed from match start", "an integer indicating which game mode the match is playing", "a factor indicating if the radiant team won or lost the match", "number of negative votes a match recieved", "number of positive votes a match recieved", "integer indicating which region of the world the match was played"))
+
+Match_Overview <- data_frame(Variable, Description)
+kable(Match_Overview, format = "markdown")
+``` 
+
+Lets look at the histograms of some of these variables. The variables 'match_id', 'game_mode', 'radiant_win', 'negative_votes', 'positive_votes' and 'cluster' will not be examined by histogram.
+
+```{r Quick Histograms of match}
+# select variables to be examined by histogram
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+
+# include difference between tower and barracks health from the perspective of the Radiant side, whereby positive values idicate Radiants had more health and negaitve values indicate Dires had more health
+
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+M$Barracks_Diff <- match$barracks_status_radiant - match$barracks_status_dire
+
+ggplot(data = melt(M), aes(x = value)) + 
+  geom_histogram(bins = 10) + 
+  facet_wrap(~variable, scales = "free_x") + 
+  theme(axis.text.x = element_text(angle = 20, hjust = 1)) 
+
+```
+
+Taking a quick look at these variables in a histogram setting shows some intersting features.
+
+##### **start_time**
+Start_time represents when each match started in time in seconds since 00:00, 01/01/1970, UTC.  It is noted that the bulk of matches recorded reside in the second half of the 'start_time' range. When asking Devin why this might be he responded saying he believes this to be due to the way Opendota.com sampled the Dota 2 game servers (please see https://www.kaggle.com/louisms/discussion [link](https://www.kaggle.com/louisms/discussion)).  The change in frequency represents a moment when Opendota.com improved how it sampled games to capture more of them.  This discrepency doe not effect how each individual game recorded was played and so no will be excluded based upon this.
+
+```{r POSIXct date}
+# Convert start time from seconds to POSIXct date
+MatchNewST <- match %>% mutate(date = as.POSIXct(match$start_time, tz = "UTC", origin = "1970-01-01"))
+```
+
+##### **duration**
+'Duration' seems to show a fairly normal distribution between roughly 1000 and 5000 seconds, however it is noted that there is some data residing above 16000 seconds, which is most likely outlier data representing games that were not played at a competitive level.  It is also noted that the shortest game is `r min(match$duration)` seconds long, clearly not a competitive game.  Let's take a closer look at its distribution.
+
+```{r duration histogram}
+# Histogram plot of duration variable
+DurHist <- ggplot(MatchNewST, aes(x = duration)) + 
+  geom_histogram(bins = 100, fill = "red") +
+  scale_x_continuous(breaks = c(0,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000), labels = c("0","1k","2k","3k","4k","5k","6k","7k","8k","9k","10k","11k","12k","13k","14k","15k","16k"))
+DurHist
+
+```
+
+It is important for this study to take the matches that were most likely played competitively.  Duration is a key indicator for this and so upon researching average game lengths it is generally agreed that matches on average last between 35-45 minutes long (2100 - 2700 seconds) with matches lasting 25 minutes (1500 seconds) considered 'short' and 60 minutes (3600 seconds) considered 'long' ([link](https://steamcommunity.com/app/570/discussions/0/864975399808976080/)). For this study we will only look at matches that last between 15 - 75 minutes (900 - 4500 seconds).
+
+```{r duration limits}
+# limit the dataset to matches that lasted between 15 and 75 minutes
+MatchNewDur <-  MatchNewST %>% filter (between(duration, 900, 4500))
+glimpse(MatchNewDur)
+```
+
+This has removed 322 matches leaving 49678 matches in the study with the following distribution of 'duration'.
+
+```{r duration limits histogram}
+# a more detailed histogram of the filtered duration variable
+DurHistNew <- ggplot(MatchNewDur, aes(x = duration)) + 
+  geom_histogram(bins = 100, fill = "red") +
+  scale_x_continuous(breaks = c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000))
+DurHistNew
+```
+
+##### **tower_status & barracks_status**
+The variables recording each sides' tower status and barracks status at match end have similar distributions. When looking at their difference ('Tower_Diff' and 'Barracks_Diff') we see bimodal distributions which are expected. As one team wins their towers and barracks are expected to have much more health than their enemies' towers and hense the bimodal distributions. There are no reasons to modify the dataset based upon these variables. Further to this these variables maybe able to define each match into a win status such as 'strong_win', 'strong_loss' and 'close_game'.
+
+When comparing the difference in towers' health between the teams with duration we find this interesting plot.
+
+```{r Tower Status Plot}
+# TowerStat_R is the health difference between Radiant and Dire towers at the end of each game.
+TowerStat_R <- MatchNewDur$tower_status_radiant - MatchNewDur$tower_status_dire
+
+# data frame containing match_duration, TowerStat_R and radiant_win status
+TvTowerStatus <- data.frame(MatchNewDur$duration, TowerStat_R, MatchNewDur$radiant_win)
+colnames(TvTowerStatus) <- c("Duration", "TowerStat_R", "Radiant_Win")
+
+# GGplot to compare match durations against difference between Radiant and Dire towers health coloured by radiant_win variable.
+
+G1 <- ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
+print(G1)
+```
+
+The x-axis represents match duration in seconds and the y-axis represents the difference between the sum of total tower health for each side when each match ends, with positive values representing the Radiant sides' towers having more health and negative values representing the Dire sides' towers having more health. The colour differentiates which side won from the perspective of the Radiant side.
+
+An interesting observation from this initial plot is that there are cases where although one teams' towers have more health they do not necessarily win the match, which is why that within the +500 to -500 TowerStat_R range we find both teams winning and losing matches.  This can be used to group each match into either a dominant win for each side or a close win.
+
+##### **first_blood**
+The variable 'first_blood' displays a right-skewed distribution which is expected since it would be rare for a game to go on too long without a single player dying. This variable maybe able to help define the win status as we might expect more earlier 'first_blood' kills recorded in strong win/loss scenarios and later 'first_blood' kills in closer games.
+
+#### **Other Key Variables**
+Here are other important variables to include that were not part of the histogram process above.
+
+##### **match_id**
+The 'match_id' variable is an integer number that Devin updated with his own numbers from 0 to 49,999, which we also find in 'players' data frame and are consistent accross all files. As discussed with Devin (see here https://www.kaggle.com/louisms/discussion [link](https://www.kaggle.com/louisms/discussion) see 'A quick look at Dota 2 dataset') he did this to save space in his files since the orginal 'match_id' values from Dota 2 servers are much longer.  This variable will be key to linking the 'match' and 'players' data frames together.
+
+##### **game_mode**
+The variable 'game_mode' was investigated as so.
+```{r game_mode}
+GMTally <- MatchNewDur %>% group_by(game_mode) %>% tally()
+GMTally
+```
+
+This shows that there were 1316 matches played as game mode '2' and 48362 as game mode '22'. It may be worth exploring if there is any discernable difference between the two mode and wether this difference is enough to include or exclude matches under game mode '2'. It may depend upon the question as it is suspected that questions such as 'which hero is most likely to create a win condition' maybe independent of game type and as such no matches should be excluded based upon this.
+
+##### **radiant_win**
+The variable 'radiant_win' is a logical factor with either 'True' or 'False' indicating if the Radiant team won or lost the match.  This variable is crutial for identifying who won each match however a new variable should be made so that it identifies if a team won or lost a match.  This will allow for linking individual players and heroes to wins and losses. This will be done after 'match' and 'players' data frames are merged because information from both are required to determine this.
+
+##### **negative_votes and positive_votes**
+These variables are not considered to be influential on the win condition of a match, other than each players' view as to how friendly other players were in the game. These variables will not initially be included in the data set, but will be remembered in case there is reason to return them to the study.
+
+##### **cluster**
+The 'cluster' variable refers to where in the world these games were hosted and is not relevent to the win condition for each match. This variable will not be included in the data set.
+
+#### **Cleaned Match Dataset**
+
+For this study the following variables from 'match' will be used:
+
+ 1 match_id
+ 2 start_time
+ 3 duration
+ 4 tower_status_radiant
+ 5 tower_status_dire
+ 6 barracks_status_dire
+ 7 barracks_status_radiant
+ 8 first_blood_time
+ 9 game_mode
+10 radiant_win
+14 date
+
+```{r MatchDF}
+# Collect key variables from 'match' dataset
+MatchDF <- MatchNewDur %>% select(1 : 10, 14)
+```
+
+### **players.csv**
+```{r players}
+players <- read.csv("players.csv")
+glimpse(players)
+```
+
+#### **Quick Overview of players.csv**
+```{r Players Overview}
+# make a data frame of all variables in 'players' combined with their descriptions
+
+Variables <- as.character(c("match_id", "account_id", "hero_id", "player_slot", "gold", "gold_spent", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "stuns", "hero_damage", "tower_damage", "item_0 to _5", "level", "leaver_status", "xp_hero", "xp_creep", "xp_roshan", "xp_other", "gold_other", "gold_death", "gold_buyback", "gold_abandon", "gold_sell", "gold_destroying_structure", "gold_killing_heros", "gold_killing_creep", "gold_killing_roshan", "gold_killing_couriers"))
+
+Descriptions <- as.character(c("unique interger to identify matches accross all files", "unique interger to identify players. 0 (zero) represent annonomous players", "unique interger to identify which hero was selected per player", "unique interger where 0-4 represent players on Radiant side and 128-132 the Dire side", "amount of gold player has at match end", "amount of gold player spent during the match", "amount of gold per minute a player accumulated on average during the match", "amount of experience points per minute a player accumulated on average during the match", "total kills a player scored per match", "number of times a player died per match", "number of assists a player gained per match", "number of denies a player performed per match", "number of last hits a player landed on creep per match", "cumulative amount of time a player stunned an enemy player", "cumulative amount of damage a player caused to enemy heroes", "cumulative amount of damage a player caused to enemy towers", "integers referring to items a player equiped during the match", "the hero character level a player obtained by match end", "integer indicating if a player stayed until match end or left early", "experience points gained from killing heros", "experience points gained from killing creep", "experience points gained from killing Roshan, neutral creep boss in jungle", "experience points gained from other sources", "gold gained from other non-conventional sources", "cumulative amount of gold lost due to death", "gold spent buying back lost items", "gold abandoned by a player", "gold gained from selling items", "gold gained from destroying structures e.g. tower, barracks, ancient", "gold gained from killing enemy heroes", "gold gained from killing creeps", "gold gained from killing Roshan, high level neutral creep boss in jungle", "gold gained from killing enemy courriers"))
+
+Players_Overview <- data_frame(Variables, Descriptions)
+kable(Players_Overview, format = "markdown")
+```
+
+The variables starting with 'unit_order_' (columns 40 - 73 in 'players' data frame) represent the number of physical mouse clicks a player did to perfrom that action.  The usefulness of these variables are not immediately obvious and will initially be removed from the working data set going forward.  If their value is deemed worthy at a later point these will be reintroduced as appropriate.
+
+```{r remove unit order columns}
+# remove unit order columns from the data set
+PlayersShort <- players[c(1:39)]
+```
+
+Lets look at the histograms of some of these key variables.
+
+```{r Quick Histograms of players}
+# select variables to be examined by histogram
+P <- PlayersShort[c("hero_id", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "hero_damage", "hero_healing", "tower_damage", "level")]
+
+ggplot(data = melt(P), aes(x = value)) + 
+  geom_histogram(bins = 10) + 
+  facet_wrap(~variable, scales = "free_x") + 
+  theme(axis.text.x = element_text(angle = 20, hjust = 1))
+
+```
+
+The 'players' data frame contains data from the same 50,000 matches recorded in 'match' for each player in each match.  Each match has ten players, five per side which is why this data frame has 500,000 observations. As mentioned before the variable 'match_id' will be used to link the two main data frames together, 'match' and 'players'.
+
+##### **hero_id**
+The variable 'hero_id' represents an integer that when linked to 'hero_names.csv' identifies which hero each player selected prior to each match.  This will be key in determining which heroes are best and which should be avoided when first starting out in the game. It is noted that 'hero_id' ranges from 'r min(players$hero_id)' to 'r max(players$hero_id)', however hero_id 0 is invalid and represents when a hero was not selected. This means these matches with hero_id 0 were inbalanced and should be removed from the data set.
+
+```{r}
+# identifying which matches have hero_id 0 present,
+
+Tally0 <- PlayersShort %>% 
+  group_by(match_id, hero_id) %>% 
+  tally() %>% 
+  filter(hero_id == 0)
+
+glimpse(Tally0)
+```
+
+'Tally0' shows us there are 35 matches that contain at least one hero_id 0, which represent unbalanced matches since one side only has only four active players.  These shall be removed from the 'MatchDF' data set.
+
+```{r cleaning hero_id}
+# identify all match_ids that have hero_id 0 in them and remove from the data set MatchDF
+HIDrm <- c(Tally0$match_id)
+MatchDF <- MatchDF %>% filter(!(match_id %in% HIDrm))
+```
+
+Applying this to MatchDF has only removed one match from this data set since the duration limits previously applied to the data set has already filtered most of these matches, as would be expected. When teams are inbalanced it would be expected that the match duration would be outside the expected duration of a competitive match.  There are now 49677 matches in this data set.
+
+Let's take a more detailed look at the cleaned hero_id variable's distribution.
+
+```{r hero_id bar chart}
+# bar plot of hero_id
+HID_Bar <- ggplot(PlayersShort, aes(x = hero_id)) + 
+  geom_bar(width = 0.8, fill = "red") +
+  scale_x_discrete(breaks = seq(0, 112, 5), limits = 1:112) +
+  theme(axis.text.x = element_text(angle = 20, hjust = 1))
+HID_Bar
+```
+
+This histogram shows quite a variance on the number of times each hero is selected every match and shows their popularity within the matches studied here. This will be imprtant when investigating the different win conditions.
+
+##### **gold and experience points (xp) per minute**
+The variables 'gold_per_min', 'all_gold_gains', 'all_gold_loss' (by death or purchases), 'xp_per_min' (experience points per minute) and 'all_xp_gains' are all general statistics not necessarily tied to PvP combat that are believed to have influence on players' performances and contribute to win conditions. These are normal distributions and all gold and xp variables will be cross-examined to see if they support any models that might help determine how well a team performed towards achieving win conditions.
+
+##### **kills, deaths and assists**
+The variables 'kills' and 'deaths' are player-vs-player (PvP) combat statistics collected per player which represent the number of enemy player kills scored per match and the number of deaths the player suffered by enemy hands per match. The number of assists per match represents the number of enemy player deaths each player significantly contributed to, but did not land the final hit on.  These variables will help to indicate how well each players' performance is relative to all the other player in the match. Further investigations could then link each player by their player_id assignment previously mentioned. These show normal distributions and there are no reasons to exclude any data based upon these variables.
+
+##### **denies**
+The variable 'denies' is a count of how many allied creep below 50% a player has killed to stop enemy players scoring last hits and gaining xp and gold.  This is another variable that could be studied in combination with others to see if this has any influence on the win condition. This shows a right-skewed distribution which is to be expected as denying enemy players of their creep kills is rare showing a bias towards the lower values here.
+
+##### **last_hits**
+Last hits represents the number of last hits scored by a player on creep. Last hit is important to track since players are required to perform last hits on creep to gain xp and gold from the kill. This is how denies work in denying enemies from gaining xp and gold. The distribution here is more normal than the denies distribution with a bit of right-skew as it is generally more sought after by players.
+
+##### **hero_damage**
+The hero damage distribution shows a normal distribution and represents the cumulative amount of damgae a player has caused to enemy players. This will be useful for determining hero effectiveness against enemy players.
+
+##### **hero_healing**
+The hero healing variable represents the amount of healing a player has performed upon allied heroes. The distribution is a very narrow right-skew, mostly due to the fact that not many heroes have the ability to heal. This variable will help to indicate the effectiveness of healing support role heroes where their other variables counts, such as kills, might be lacking.
+
+##### **tower_damage**
+The tower damage variable indicates how much damage a player caused to enemy towers during the match. The distribution here is right-skewed as expected. There is limited enemy tower health to destroy and it is unlikely that a single hero from one team would be responsible for all the tower damage in a single match.
+
+##### **level**
+The level variable idicates what level the player reach at match end. The distribution is fairly flat above 10. This variable will be helpful when comparing hero levels from winning and losing teams.
+
+#### **Other key variables from 'players'**
+
+##### **account_id**
+The variable 'account_id' is a number Devin applied to each new unique player that the dataset recorded. Devin applied his own numbering to each account to save space since the orginal 'account_id' values were much larger.  0 represents a player who is playing anonymously but those recorded from 1 to `r max(players$account_id)` represents unique players. No data will be removed based upon this variable.
+
+##### **leaver_status**
+The leaver status variable ranges from 0 to 4, where 0 indicates matches where no one left and 1-4 indicate varying degrees of when players left during matches. The important point here is to only look at matches where no one left the match. As indicated by the histogram most of the matches did not have any leavers.
+
+```{r lever_status}
+# investigate the number of matches where no one left before the end of the match
+TallyLS <- PlayersShort %>% 
+  group_by(match_id, leaver_status) %>% 
+  tally() %>% 
+  filter(leaver_status != 0)
+
+glimpse(TallyLS)
+```
+
+This shows there are 9593 players who are redcorded leaving the match at some point. These matches should be removed from the data set because even if only one player leaves this represents a loss of force by 20%. This gives the team with all players present an advantage over the other significantly and will skew all the variables recorded for both teams. It maybe interesting at a later date to compare these matches with leavers to those whithout to see how much this affects match outcomes.
+
+```{r cleaning leaver_status}
+# identify all match_ids that have leaver_Status > 0 and remove from the data set MatchDF
+LSrm <- c(TallyLS$match_id)
+MatchDF <- MatchDF %>% filter(!(match_id %in% LSrm))
+```
+
+Applying this filter to MatchDF reduces the number of matches in the data set to 42051 viable matches. This has reduced the dataset to 84% of the original 50000 matches recorded.
+
+##### **player_slot**
+The variable 'player_slot' contains integers ranging from 0-4 and 128-132 for each match.  0-4 represents the 5 players playing for the Radiant side and 128-132 for those 5 players playing for the Dire side. A new variable will be generated to label which side each player is playing for where 0-4 = Radiant or "R" and 128-132 = Dire or "D".
+
+```{r Team_ID}
+# add variable "team" whereby 'player_slot' values 0-4 represent Radiant team ("R") and 128-132 represent Dire team ("D").
+PlayersTeam <- PlayersShort
+PlayersTeam$team <- ifelse(PlayersTeam$player_slot < 5, "R", "D")
+```
+
+#### **Cleaned Players Dataset**
+
+For this study the following 26 variables from the orginal file 'players' will be used:
+
+ 1 match_id
+ 2 account_id
+ 3 hero_id
+ 4 player_slot
+ 5 gold
+ 6 gold_spent
+ 7 gold_per_min
+ 8 xp_per_min
+ 9 kills
+10 deaths
+11 assists
+12 denies
+13 last_hit
+15 hero_damage
+16 hero_healing
+17 tower_damage
+24 level
+26 xp_hero
+27 xp_creep
+28 xp_rosan
+31 gold_death
+35 gold_destroying_structure
+36 gold_killing_heros
+37 gold_killing_creeps
+38 gold_killing_rosan
+40 team
+
+```{r PlayersDF}
+PlayersDF <- PlayersTeam %>% select(1 : 13, 15 : 17, 24, 26 : 28, 31, 35 : 38, 40)
+```
+
+#### **hero_names.csv**
+```{r Hero_Names}
+Hero_Names <- read.csv("hero_names.csv")
+glimpse(Hero_Names)
+```
+
+The data frame 'Hero_Names' holds the key for the 'hero_id' variable in the 'players' data frame.  This data frame will be tidied up and prepared for applying the key to the 'hero_id' variable.  The first column 'name' holds duplicate information and will be removed.  The remaining two columns will be named accordingly: "hero_id" and "Hero_Names".
+
+```{r HN_clean}
+Hero_Names["name"] <- NULL
+colnames(Hero_Names) <- c("hero_id", "Hero_Names")
+```
+
+Further examination of the 'hero_names' data frame shows that there is no hero_id 24 in the data set and the most recent hero 'Monkey King' is not present since this data set is taken from before Monkey King was introduced to the game.
+
+The hero_names.csv file was updated to include each heroes' roles and class as defined by dota2.gamepedia.com/Role [link](http://dota2.gamepedia.com/Role).  Each hero can have multiple roles but only one of three classes.  The three classes and theor descriptions are:
+
+```{r Hero Classes}
+# table to show the different hero classes and their descriptions
+Hero_Class <- as.character(c("Strength (STR)", "Agility (AGI)", "Intellect (INT)"))
+
+Class_Descriptions <- as.character(c("warrior-like class mainly dealing melee damage", "aglie class, fast and harder to hit", "spell-weilding class"))
+
+Hero_Classes <- data_frame(Hero_Class, Class_Descriptions)
+kable(Hero_Classes, format = "markdown")
+```
+
+The hero roles and their descriptions are:
+
+```{r Hero Roles}
+# table to show Gamepedia's descriptions of each role type in Dota 2
+Roles <-as.character(c("Carry", "Disabler", "Initiator", "Jungler", "Support", "Durable", "Nuker", "Pusher", "Escape"))
+
+Gamepedia_Descriptions <- as.character(c("Will become more useful later in the game if they gain a significant gold advantage", "Has a guaranteed disable for one or more of their spells", "Good at starting a teamfight", "Can farm effectively from neutral creeps inside the jungle early in the game", "Can focus less on amassing gold and items, and more on using their abilities to gain an advantage for the team", "Has the ability to last longer in teamfights", "Can quickly kill enemy heroes using high damage spells with low cooldowns", "Can quickly siege and destroy towers and barracks at all points of the game", "Has the ability to quickly avoid death"))
+
+Hero_Roles <- data_frame(Roles, Gamepedia_Descriptions)
+kable(Hero_Roles, format = "markdown")
+```
+
+For more details on roles please see dota2.gamepedia.com/Role [link](http://dota2.gamepedia.com/Role). The data frame Hero_Names was exported as a csv file and modifed to include the class and role information in Excel. It now looks like this.
+
+```{r Hero_Names Modified}
+# import updated 'hero_names_mod.csv' file
+Hero_Names <- read.csv("hero_names_mod.csv")
+glimpse(Hero_Names)
+
+```
+
+Each hero is now linked to their unique class and collection of roles as defined by the community at dota2.gamepedia.com/Role [link](http://dota2.gamepedia.com/Role). These will be bound the the PlayerDF data set.
+
+```{r add Hero Names data}
+# combine PlayersDF and Hero_Names by the variable 'hero_id'
+PlayersDF <- left_join(PlayersDF, Hero_Names, by = "hero_id")
+```
+
+## **CombinedDF Data Frame**
+Both 'MatchDF' and 'PlayersDF' data frames have been cleaned up and contain only pertinent data to the project. They will be brought together by the common 'match_id' variable both data frames have. Each player in each match will also have a new variable added to determine their win / loss status based upon the 'radiant_win' and 'team' variables.
+
+```{r CombinedDF}
+# Combine PlayersDF and MatchDF into CombinedDF
+CombinedDF <- left_join(MatchDF, PlayersDF,by = "match_id")
+
+# add column WL to CombinedDF to indicate Win/Loss for each individual player
+CombinedDF$WL <- ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "R", "Win", 
+                  ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "D", "Loss", 
+                  ifelse(CombinedDF$radiant_win == "False" & CombinedDF$team == "R", "Loss", "Win")))
+
+glimpse(CombinedDF)
+```
+
+The 'CombinedDF' data frame has 420510 observations across 49 variables and represents the collection of all data that will be discussed in this report. This will be the source for all studies going forward in this project.
+
