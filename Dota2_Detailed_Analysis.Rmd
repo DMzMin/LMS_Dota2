@@ -66,16 +66,45 @@ Hero_KDR <- CombinedDF %>% select(Hero_Names, account_id, match_id, WL, level, k
 Hero_KDR <- rename(Hero_KDR, c("Hero_Names"="Name", "account_id"="Player"))
 Hero_KDR$KDR <- round(Hero_KDR$kills / Hero_KDR$deaths, digits = 2)
 
+# group by player and tally
+GP_Player <- Hero_KDR %>%
+  group_by(Player) %>%
+  tally(Player != 0, sort = TRUE)
+
+max(GP_Player$n)
+mean(GP_Player$n)
+
+max(GP_Player$Player)
+
+GPP_10 <- filter(GP_Player, )
+
+# ggplot of player count
+ggplot(head(GP_Player, n = 40), aes(x = Player, y = n)) +
+  geom_bar(stat = "identity")
+
+
+HKDR <- Hero_KDR %>% select(Name, WL, KDR)
+
+kd <- aggregate(HKDR, FUN = mean, by = Name)
+
+
+rm(kd)
+
+# kd <- cast(HKDR, Name~KDR, mean)
+# aggregate(data=HKDR, by=Name, FUN=mean)
+
+# looking at Players
+
 
 ```
 
 
 ```{r}
 # percent of tatal matches sampled
-Hero_Bar$Pct <- round(Hero_Bar$HN_Count/sum(Hero_Bar$HN_Count)*100, digits = 1)
+Hero_Bar$Pct <- round(Hero_Bar$HN_Count/sum(Hero_Bar$HN_Count)*100, digits=1)
 
 # plot showing count and percent for each hero selected
-ggplot(head(Hero_Bar, n = 40), aes(x = reorder(Name, -HN_Count), y = HN_Count, width = 0.8, fill = Class, as.factor = TRUE)) +
+ggplot(head(Hero_Bar, n=40), aes(x=reorder(Name, -HN_Count), y=HN_Count, width=0.8, fill=Class, as.factor=TRUE)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label=Pct, vjust = 0.5, hjust = 0), check_overlap = TRUE) +
   theme(axis.text.x = element_text(angle = 40, hjust = 1, size = 8)) +
@@ -134,7 +163,7 @@ Class_Ct <- head(Hero_Bar, n = 40) %>%
   tally(sort = TRUE)
 
 # percent of tatal matches sampled
-Class_Ct$Pct <- round(Class_Ct$nn/sum(Class_Ct$nn)*100, digits = 1)
+Class_Ct$Pct <- round(Class_Ct$n/sum(Class_Ct$n)*100, digits = 1)
 
 ggplot(Class_Ct, aes(x = Class, y = Pct, width = 0.5, fill = Class, as.factor = TRUE)) +
   geom_bar(stat = "identity")
