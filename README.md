@@ -8,5 +8,7 @@ Please see 'Dota2_Capstone_by_LMS.Rmd' document for project report.
 Please see 'xxx' for slides (to be made).
 
 ------------------------------------------
-!!This readme file STILL NEEDS MORE WORK!! Capstone project still in the making.
+!!This readme file STILL NEEDS MORE WORK!!
 ------------------------------------------
+
+Wrangle document: http://rpubs.com/LMS/Dota2_Wrangle

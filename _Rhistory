@@ -1,0 +1,512 @@
+# 'Tally0' shows us there are 35 matches that contain at least one hero_id 0, which represent unbalanced games since one side only has only four active players.
+PlayersDF <- players %>% select(1 : 17)
+Hero_Names <- read.csv("hero_names.csv")
+glimpse(Hero_Names)
+Hero_Names["name"] <- NULL
+colnames(Hero_Names) <- c("hero_id", "Hero_Names")
+# Combine PlayersDF and MatchDF into CombinedDF
+CombinedDF <- left_join(PlayersDF, MatchDF, by = "match_id")
+# Add column with hero names represented by 'Hero_Names' data frame.
+CombinedDF <- left_join(CombinedDF, Hero_Names, by = "hero_id")
+# Remove 'MatchDF' and 'PlayersDF' from the project as these are interim steps to combining the dataset into a cleaner singe data frame.
+rm(MatchDF)
+rm(PlayersDF)
+# Add a new variable 'Roles' for each hero_id where Carry = "Car", Disabler = "Dis", Initiator = "Ini", Jungler = "Jun", Support = "Sup", Durable = "Dur", Nuker = "Nuk", Pusher = "Pus" and Escape = "Esc"
+CombinedDF$roles <-
+# Combine PlayersDF and MatchDF into CombinedDF
+CombinedDF <- left_join(PlayersDF, MatchDF, by = "match_id")
+View(Tally0)
+save.image("~/Documents/Louis/CapstoneProject16/LMS_Dota2/lms1.RData")
+library(xlsx)
+library(csv)
+write.csv(Hero_Names, "Hero_Names.csv")
+max(CombinedDF$date)
+Hero_Names <- read.csv("hero_names.csv")
+View(Hero_Names)
+Hero_Names <- read.csv("hero_names.csv")
+View(Hero_Names)
+Hero_Names <- read.csv("hero_names.csv")
+glimpse(Hero_Names)
+View(Hero_Names)
+knitr::include_graphics(Dota_2_minimap.jpg)
+include_graphics(Dota_2_minimap.jpg)
+library(knitr)
+include_graphics(Dota_2_minimap.jpg)
+ggplot(match) + geom_histogram()
+ggplot(match) + geom_histogram() + facet_grid(.~.)
+ggplot(match) + geom_histogram() + facet_grid(.~match_id)
+ggplot(match) + geom_histogram(bins = 100) + facet_grid(.~match_id)
+ggplot(match, x = .) + geom_histogram(bins = 100) + facet_grid(.~match_id)
+ggplot(match, aes(x = value)) + facet_grid(~variable, scales = "free_x") + geom_histogram()
+ggplot(match, aes(x = value)) + facet_wrap(~variable, scales = "free_x") + geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_wrap(~match_id, scales = "free_x") +
+geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_wrap(~match$match_id, scales = "free_x") +
+geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_wrap(.~match$match_id, scales = "free_x") +
+geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_grid(.~match$match_id, scales = "free_x") +
+geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_wrap(~match$match_id, scales = "free_x") +
+geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_wrap(~class, scales = "free_x") +
+geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_wrap(~., scales = "free_x") +
+geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_wrap(~match[i], scales = "free_x") +
+geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_wrap(~match[.], scales = "free_x") +
+geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_wrap(~match[match_id], scales = "free_x") +
+geom_histogram()
+ggplot(match, aes(x = value)) +
+facet_wrap(~match[match_id], scales = "free_x", ncol = 13) +
+geom_histogram()
+ggplot(data = melt(match), mapping = aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~radiant_win, scales = "free_x")
+library(reshape2)
+ggplot(data = melt(match), mapping = aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~radiant_win, scales = "free_x")
+ggplot(data = match, mapping = aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~radiant_win, scales = "free_x")
+ggplot(data = melt(match), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~radiant_win, scales = "free_x")
+ggplot(data = melt(match), aes(x = value)) +
+geom_histogram(bin = 100) +
+facet_wrap(~radiant_win, scales = "free_x")
+melt(match)
+ggplot(data = melt(match), aes(x = value)) +
+geom_histogram(bin = 100) +
+facet_wrap(~variable, scales = "free_x")
+ggplot(data = melt(match), aes(x = value)) +
+geom_histogram(bin = 100) +
+facet_wrap(~variable, scales = "free_x" + "free_y")
+ggplot(data = melt(match), aes(x = value)) +
+geom_histogram(bin = 100) +
+facet_wrap(~variable, scales = "free_y")
+ggplot(data = melt(match), aes(x = value)) +
+geom_histogram(bin = 100) +
+facet_wrap(~variable, scales = "free_x")
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+M <- match %>% c(start_time, duration, tower_status_radiant, tower_status_dire, barracks_status_dire, barracks_status_radiant, first_blood_time)
+ggplot(data = melt(match), aes(x = value)) +
+geom_histogram(bin = 100) +
+facet_wrap(~variable, scales = "free_x")
+M <- c(match$start_time, match$duration, match$tower_status_radiant, match$tower_status_dire, match$barracks_status_dire, match$barracks_status_radiant, match$first_blood_time)
+M <- c("match$start_time", "match$duration", "match$tower_status_radiant", "match$tower_status_dire", "match$barracks_status_dire", "match$barracks_status_radiant", "match$first_blood_time")
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bin = 100) +
+facet_wrap(~variable, scales = "free_x")
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+View(M)
+# select variables to be examined by histogram
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+# include difference between tower and barracks health from the perspective of the Radiant side, whereby positive values idicate Radiants had more health and negaitve values indicate Dires had more health
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+M$Barracks_Diff <- match$barracks_status_radiant - match$tower_status_dire
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bin = 100) +
+facet_wrap(~variable, scales = "free_x")
+View(M)
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+hist(TowerStat_R)
+![Figure 1: Dota 2 mini map at start of the game where cubes (11/side) represent tower positions for Radiant (green) and Dire (red), smaller double-cubes (6/side)represent barracks location and non-cube (1/side) represents ‘Ancient’ location] (images/Dota_2_minimap.jpg)
+M$Barracks_Diff <- match$barracks_status_radiant - match$barracks_status_dire
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+?melt
+View(players)
+leavestat <- players %>% group_by(leaver_status) %>% tally()
+View(leavestat)
+head(Hero_Names, n=10)
+head(Hero_Names, n=10)
+P <- players[c("account_id", "hero_id", "gold", "gold_spent", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "stuns", "hero_damage", "hero_healing", "tower_damage", "level", "leaver_status", "xp_hero", "xp_creep", "xp_roshan","xp_other", "gold_death", "gold_buyback", "gold_abandon", "gold_sell", "gold_destroying_structure", "gold_killing_heros", "gold_killing_creeps", "gold_killing_roshan", "gold_killing_couriers")]
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+max(players$hero_healing)
+P <- players[c("hero_id", "gold", "gold_spent", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "stuns", "hero_damage", "hero_healing", "tower_damage", "level", "leaver_status", "xp_hero", "xp_creep", "gold_death", "gold_destroying_structure", "gold_killing_heros", "gold_killing_creeps")]
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+ggplot(data = P, aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+knitr::opts_chunk$set(echo = TRUE)
+# select variables to be examined by histogram
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+# include difference between tower and barracks health from the perspective of the Radiant side, whereby positive values idicate Radiants had more health and negaitve values indicate Dires had more health
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+M$Barracks_Diff <- match$barracks_status_radiant - match$barracks_status_dire
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+GMTally <- match %>% group_by(game_mode) %>% tally()
+GMTally
+match <- read.csv("match.csv")
+glimpse(match)
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+match <- read.csv("match.csv")
+glimpse(match)
+# select variables to be examined by histogram
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+# include difference between tower and barracks health from the perspective of the Radiant side, whereby positive values idicate Radiants had more health and negaitve values indicate Dires had more health
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+M$Barracks_Diff <- match$barracks_status_radiant - match$barracks_status_dire
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+# select variables to be examined by histogram
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+# include difference between tower and barracks health from the perspective of the Radiant side, whereby positive values idicate Radiants had more health and negaitve values indicate Dires had more health
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+M$Barracks_Diff <- match$barracks_status_radiant - match$barracks_status_dire
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+# select variables to be examined by histogram
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+# include difference between tower and barracks health from the perspective of the Radiant side, whereby positive values idicate Radiants had more health and negaitve values indicate Dires had more health
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+M$Barracks_Diff <- match$barracks_status_radiant - match$barracks_status_dire
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bins = 10) +
+facet_wrap(~variable, scales = "free_x")
+# select variables to be examined by histogram
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+# include difference between tower and barracks health from the perspective of the Radiant side, whereby positive values idicate Radiants had more health and negaitve values indicate Dires had more health
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+M$Barracks_Diff <- match$barracks_status_radiant - match$barracks_status_dire
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bins = 20) +
+facet_wrap(~variable, scales = "free_x")
+DurHist <- ggplot(match$duration) + geom_histogram()
+DurHist <- ggplot(match, aes(x = duration)) + geom_histogram()
+DurHist
+DurHist <- ggplot(match, aes(x = duration)) + geom_histogram(bins = 100)
+DurHist
+DurHist <- ggplot(match, aes(x = duration)) + geom_histogram(bins = 1000)
+DurHist
+DurHist <- ggplot(match, aes(x = duration, col = "red")) + geom_histogram(bins = 1000)
+DurHist
+DurHist <- ggplot(match, aes(x = duration, fill = "red")) + geom_histogram(bins = 1000)
+DurHist
+# TowerStat_R is the health difference between Radiant and Dire towers at the end of each game.
+TowerStat_R <- match$tower_status_radiant - match$tower_status_dire
+# data frame containing match_duration, TowerStat_R and radiant_win status
+TvTowerStatus <- data.frame(match$duration, TowerStat_R, match$radiant_win)
+colnames(TvTowerStatus) <- c("Duration", "TowerStat_R", "Radiant_Win")
+# GGplot to compare match durations against difference between Radiant and Dire towers health coloured by radiant_win variable.
+G1 <- ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
+print(G1)
+GMTally <- match %>% group_by(game_mode) %>% tally()
+GMTally
+DurHist <- ggplot(match, aes(x = duration, fill = "red")) + geom_histogram(bins = 1000)
+DurHist
+DurHist <- ggplot(match, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 1000) +
+xlim(0,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000)
+DurHist <- ggplot(match, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 1000) +
+scale_x_continuous(0,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000)
+DurHist <- ggplot(match, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 1000) +
+scale_x_continuous(breaks = c(0,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000))
+DurHist
+Tally15Dur80 <- match %>% group_by(duration) %>% tally(889 < duration < 4801)
+Tally15Dur80 <- match %>% tally(889 < duration < 4801)
+Tally15Dur80 <- match %>% group_by(duration) tally(>899)
+15Dur80 <- 900 <= match$duration <= 4800
+15Dur80 <- c(900 <= match$duration <= 4800)
+15Dur80 <- subset(match, duration >= 900 & duration <= 4800)
+DurNew <- subset(match, duration >= 900 & duration <= 4800)
+glimpse(DurNew)
+rm(DurNew)
+MatchDurNew <- subset(match, duration >= 900 & duration <= 4800)
+glimpse(MatchDurNew)
+MatchDurNew <- subset(match, duration >= 900 & duration <= 4500)
+glimpse(MatchDurNew)
+DurHist <- ggplot(MatchDurNew, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 1000) +
+scale_x_continuous(breaks = c(0,1000,2000,3000,4000,5000))
+DurHist <- ggplot(match, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 1000) +
+scale_x_continuous(breaks = c(0,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000))
+DurHist
+DurHistNew <- ggplot(MatchDurNew, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 1000) +
+scale_x_continuous(breaks = c(0,1000,2000,3000,4000,5000))
+DurHistNew
+DurHistNew <- ggplot(MatchDurNew, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 1000) +
+scale_x_continuous(breaks = c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000))
+DurHistNew
+# TowerStat_R is the health difference between Radiant and Dire towers at the end of each game.
+TowerStat_R <- MatchDurNew$tower_status_radiant - MatchDurNew$tower_status_dire
+# data frame containing match_duration, TowerStat_R and radiant_win status
+TvTowerStatus <- data.frame(MatchDurNew$duration, TowerStat_R, MatchDurNew$radiant_win)
+colnames(TvTowerStatus) <- c("Duration", "TowerStat_R", "Radiant_Win")
+# GGplot to compare match durations against difference between Radiant and Dire towers health coloured by radiant_win variable.
+G1 <- ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
+print(G1)
+GMTally <- MatchDurNew %>% group_by(game_mode) %>% tally()
+GMTally
+MatchNewST <- match %>% mutate(date = as.POSIXct(MatchDF$start_time, tz = "UTC", origin = "1970-01-01"))
+MatchNewST <- match %>% mutate(date = as.POSIXct(Match$start_time, tz = "UTC", origin = "1970-01-01"))
+MatchNewST <- match %>% mutate(date = as.POSIXct(match$start_time, tz = "UTC", origin = "1970-01-01"))
+DurHist <- ggplot(MatchNewST, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 1000) +
+scale_x_continuous(breaks = c(0,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000))
+DurHist
+# limit the dataset to matches that lasted between 15 and 75 minutes
+MatchNewDur <- subset(MatchNewST, duration >= 900 & duration <= 4500)
+glimpse(MatchNewDur)
+DurHistNew <- ggplot(MatchNewDur, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 1000) +
+scale_x_continuous(breaks = c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000))
+DurHistNew
+rm(MatchDurNew)
+DurHistNew <- ggplot(MatchNewDur, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 1000) +
+scale_x_continuous(breaks = c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000))
+DurHistNew
+# TowerStat_R is the health difference between Radiant and Dire towers at the end of each game.
+TowerStat_R <- MatchNewDur$tower_status_radiant - MatchNewDur$tower_status_dire
+# data frame containing match_duration, TowerStat_R and radiant_win status
+TvTowerStatus <- data.frame(MatchNewDur$duration, TowerStat_R, MatchNewDur$radiant_win)
+colnames(TvTowerStatus) <- c("Duration", "TowerStat_R", "Radiant_Win")
+# GGplot to compare match durations against difference between Radiant and Dire towers health coloured by radiant_win variable.
+G1 <- ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
+print(G1)
+# Collect key variables from 'match' dataset
+MatchDF <- MatchNewDur %>% select(1 : 5, 8 : 10)
+players <- read.csv("players.csv")
+glimpse(players)
+# select variables to be examined by histogram
+P <- players[c("hero_id", "gold", "gold_spent", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "stuns", "hero_damage", "hero_healing", "tower_damage", "level", "leaver_status", "xp_hero", "xp_creep", "gold_death", "gold_destroying_structure", "gold_killing_heros", "gold_killing_creeps")]
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bin = 10) +
+facet_wrap(~variable, scales = "free_x")
+# select variables to be examined by histogram
+P <- players[c("hero_id", "gold", "gold_spent", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "stuns", "hero_damage", "hero_healing", "tower_damage", "level", "leaver_status", "xp_hero", "xp_creep", "gold_death", "gold_destroying_structure", "gold_killing_heros", "gold_killing_creeps")]
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bins = 20) +
+facet_wrap(~variable, scales = "free_x")
+GMTally <- MatchNewDur %>% group_by(game_mode) %>% tally()
+GMTally
+# select variables to be examined by histogram
+P <- players[c("hero_id", "gold", "gold_spent", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "stuns", "hero_damage", "hero_healing", "tower_damage", "level", "leaver_status", "xp_hero", "xp_creep", "gold_death", "gold_destroying_structure", "gold_killing_heros", "gold_killing_creeps")]
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bins = 20) +
+facet_wrap(~variable, scales = "free_x")
+max(players$hero_id)
+Tally0 <- players %>%
+group_by(match_id, hero_id) %>%
+tally() %>%
+filter(hero_id == 0)
+Tally0 <- players %>%
+group_by(match_id, hero_id) %>%
+tally() %>%
+filter(hero_id == 0)
+glimpse(Tally0)
+View(Tally0)
+TallyDF
+TallyDF <- players %>%
+group_by(match_id, hero_id) %>%
+tally() %>%
+filter(n>1)
+TallyDF <- players %>%
+group_by(match_id, hero_id) %>%
+tally() %>%
+filter(n>1)
+TallyDF
+View(TallyDF)
+TallyDF <- players %>%
+group_by(match_id, hero_id) %>%
+tally() %>%
+filter(n>0)
+TallyDF <- players %>%
+group_by(match_id, hero_id) %>%
+tally() %>%
+filter(n>0)
+TallyDF
+TallyDF <- players %>%
+group_by(match_id, hero_id) %>%
+tally() %>%
+filter(n>1)
+TallyDF
+min(players$hero_id)
+View(Hero_Names)
+Tally24 <- players %>%
+group_by(match_id, hero_id) %>%
+tally() %>%
+filter(hero_id == 24)
+View(Tally24)
+glimpse(Tally0)
+HIDrm <- c(Tally0$match_id)
+test <- subset(MatchDF, match_id != HIDrm)
+test1 <- subset(MatchDF, match_id != HIDrm)
+MatchDF <- subset(MatchDF, match_id != HIDrm)
+PlayersTeam <- P
+PlayersTeam$team <- ifelse(PlayersTeam$player_slot < 5, "R", "D")
+PlayersTeam <- players
+View(players)
+PlayersShort <- players[c(1:39)]
+P <- PlayersShort[c("hero_id", "gold", "gold_spent", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "stuns", "hero_damage", "hero_healing", "tower_damage", "level", "leaver_status", "xp_hero", "xp_creep", "gold_death", "gold_destroying_structure", "gold_killing_heros", "gold_killing_creeps")]
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bins = 20) +
+facet_wrap(~variable, scales = "free_x")
+Tally0 <- PlayersShort %>%
+group_by(match_id, hero_id) %>%
+tally() %>%
+filter(hero_id == 0)
+glimpse(Tally0)
+PlayersTeam <- PlayersShort
+PlayersTeam$team <- ifelse(PlayersTeam$player_slot < 5, "R", "D")
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bins = 20) +
+facet_wrap(~variable, scales = "free_x")
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bins = 20) +
+facet_wrap(~variable, scales = "free_x")
+HID_Hist <- ggplot(PlayersShort, aes(x = duration, fill = "red")) +
+geom_histogram(bins = 20)
+HID_Hist
+HID_Hist <- ggplot(PlayersShort, aes(x = hero_id, fill = "red")) +
+geom_histogram(bins = 20)
+HID_Hist
+HID_Hist <- ggplot(PlayersShort, aes(x = hero_id, fill = "red")) +
+geom_histogram(bins = 112)
+HID_Hist
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bins = 20) +
+facet_wrap(~variable, scales = "free_x")
+TallyLS <- PlayersShort %>%
+group_by(match_id, leaver_status) %>%
+tally()
+glimpse(TallyLS)
+View(test)
+View(TallyLS)
+View(TallyLS)
+TallyLS <- PlayersShort %>%
+group_by(match_id, leaver_status) %>%
+tally() %>%
+filter(leaver_status == 0)
+glimpse(TallyLS)
+TallyLS <- PlayersShort %>%
+group_by(match_id, leaver_status) %>%
+tally() %>%
+filter(leaver_status != 0)
+glimpse(TallyLS)
+TallyLS
+count(TallyLS)
+glimpse(TallyLS)
+rm(test)
+rm(test1)
+LSrm <- c(TallyLS$match_id)
+test1 <- subset(MatchDF, match_id != LSrm)
+rm(test1)
+MatchDF <- subset(MatchDF, match_id != LSrm)
+MatchDF <- MatchNewDur %>% select(1 : 10, 14)
+# identify all match_ids that have hero_id 0 in them and remove from the data set MatchDF
+HIDrm <- c(Tally0$match_id)
+MatchDF <- subset(MatchDF, match_id != HIDrm)
+# identify all match_ids that have leaver_Status > 0 and remove from the data set MatchDF
+LSrm <- c(TallyLS$match_id)
+MatchDF <- subset(MatchDF, match_id != LSrm)
+View(PlayersTeam)
+# add variable "team" whereby 'player_slot' values 0-4 represent Radiant team ("R") and 128-132 represent Dire team ("D").
+PlayersTeam <- PlayersShort
+PlayersTeam$team <- ifelse(PlayersTeam$player_slot < 5, "R", "D")
+View(PlayersTeam)
+PlayersDF <- PlayersTeam %>% select(1 : 13, 15 : 17, 24, 26 : 28, 31, 35 : 38, 40)
+View(PlayersDF)
+Hero_Names <- read.csv("hero_names.csv")
+glimpse(Hero_Names)
+Hero_Names <- read.csv("hero_names.csv")
+glimpse(Hero_Names)
+Hero_Names["name"] <- NULL
+colnames(Hero_Names) <- c("hero_id", "Hero_Names")
+# import updated 'hero_names_mod.csv' file
+Hero_Names <- read.csv("hero_names_mod.csv")
+glimpse(Hero_Names)
+test1 <- left_join(PlayersDF, Hero_Names, by = "hero_id")
+View(test1)
+rm(test1)
+CombinedDF <- left_join(MatchDF, PlayersDF,by = "match_id")
+glimpse(CombinedDF)
+View(CombinedDF)
+CombinedDF$WL <- ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "R", "Win",
+ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "D", "Loss",
+ifelse(CombinedDF$radiant_win == "False" & CombinedDF$team == "R", "Loss", "Win")))
+glimpse(CombinedDF)
+ggplot(data = melt(CombinedDF), aes(x = value)) +
+geom_histogram(bins = 20) +
+facet_wrap(~variable, scales = "free_x")
+MatchDF <- MatchDF %>% filter(!(match_id %in% HIDrm))
+MatchDF <- MatchDF %>% filter(!(match_id %in% LSrm)
+MatchDF <- MatchDF %>% filter(!(match_id %in% LSrm))
+LSrm <- c(TallyLS$match_id)
+MatchDF <- MatchDF %>% filter(!(match_id %in% LSrm))
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+match <- read.csv("match.csv")
+glimpse(match)
+# select variables to be examined by histogram
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+# include difference between tower and barracks health from the perspective of the Radiant side, whereby positive values idicate Radiants had more health and negaitve values indicate Dires had more health
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+M$Barracks_Diff <- match$barracks_status_radiant - match$barracks_status_dire
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bins = 20) +
+facet_wrap(~variable, scales = "free_x")

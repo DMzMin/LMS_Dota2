@@ -1,7 +1,7 @@
 ---
-title: "The Dataset and Initial EDA"
+title: "Dota 2 Capstone Report - The Dataset and Initial EDA"
 author: "Louis MS"
-date: "17/02/2017"
+date: "21/02/2017"
 output: html_document
 ---
 
@@ -13,7 +13,7 @@ library(tidyr)
 library(ggplot2)
 library(reshape2)
 
-# This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Wrangle
+# This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Wrangled
 ```
 
 ## **The Dataset & Initial Exploratory Data Analysis**
@@ -67,7 +67,7 @@ ggplot(data = melt(M), aes(x = value)) +
 Taking a quick look at these variables in a histogram setting shows some intersting features.
 
 ##### **start_time**
-Start_time represents when each match started in time in seconds since 00:00, 01/01/1970, UTC.  It is noted that the bulk of matches recorded reside in the second half of the 'start_time' range. When asking Devin why this might be he responded saying he believes this to be due to the way Opendota.com sampled the Dota 2 game servers (please see https://www.kaggle.com/louisms/discussion [link](https://www.kaggle.com/louisms/discussion)).  The change in frequency represents a moment when Opendota.com improved how it sampled games to capture more of them.  This discrepency doe not effect how each individual game recorded was played and so no will be excluded based upon this.
+Start_time represents when each match started in time in seconds since 00:00, 01/01/1970, UTC.  It is noted that the bulk of matches recorded reside in the second half of the 'start_time' range. When asking Devin why this might be he responded saying he believes this to be due to the way Opendota.com sampled the Dota 2 game servers (please see www.kaggle.com/louisms/discussion [link](https://www.kaggle.com/louisms/discussion)).  The change in frequency represents a moment when Opendota.com improved how it sampled games to capture more of them.  This discrepency doe not effect how each individual game recorded was played and so no will be excluded based upon this.
 
 ```{r POSIXct date}
 # Convert start time from seconds to POSIXct date
@@ -193,14 +193,25 @@ Players_Overview <- data_frame(Variables, Descriptions)
 kable(Players_Overview, format = "markdown")
 ```
 
-The variables starting with 'unit_order_' (columns 40 - 73 in 'players' data frame) represent the number of physical mouse clicks a player did to perfrom that action.  The usefulness of these variables are not immediately obvious and will initially be removed from the working data set going forward.  If their value is deemed worthy at a later point these will be reintroduced as appropriate.
+##### **unit_order_**
+The variables starting with 'unit_order_' (columns 40 - 73 in 'players' data frame) represent the number of physical mouse and keyboard clicks a player did to perfrom certain actions.  The usefulness of these variables are not immediately obvious however an accumulation of all clicks per player per match will be collected since it could be used as an idicator of how advanced a player is or how skillful a player is needed to be to operate a hero effectively.
 
-```{r remove unit order columns}
-# remove unit order columns from the data set
-PlayersShort <- players[c(1:39)]
+```{r amalgamate unit_order_}
+# sum all 'unit_order_' records for each player for each match
+players$unit_order_total <- rowSums(players[40:73], na.rm = TRUE)
+
+# collect key information into PlayersShort
+PlayersShort <- players[c(1:39,74)]
+
+# histogram of unit_order_total
+ggplot(PlayersShort, aes(x = unit_order_total)) + 
+  geom_histogram(bins = 100, fill = "red")
+
 ```
 
-Lets look at the histograms of some of these key variables.
+The histogram of the variable 'unit_order_total' has mainly a normal distribution with a small right skew tail towards 250000. It maybe more informative when examined over time. This will require the duration variable from MatchDF.
+
+Lets look at the histograms of some of the other key variables.
 
 ```{r Quick Histograms of players}
 # select variables to be examined by histogram
@@ -218,7 +229,7 @@ The 'players' data frame contains data from the same 50,000 matches recorded in 
 ##### **hero_id**
 The variable 'hero_id' represents an integer that when linked to 'hero_names.csv' identifies which hero each player selected prior to each match.  This will be key in determining which heroes are best and which should be avoided when first starting out in the game. It is noted that 'hero_id' ranges from 'r min(players$hero_id)' to 'r max(players$hero_id)', however hero_id 0 is invalid and represents when a hero was not selected. This means these matches with hero_id 0 were inbalanced and should be removed from the data set.
 
-```{r}
+```{r Tally0}
 # identifying which matches have hero_id 0 present,
 
 Tally0 <- PlayersShort %>% 
@@ -237,16 +248,16 @@ HIDrm <- c(Tally0$match_id)
 MatchDF <- MatchDF %>% filter(!(match_id %in% HIDrm))
 ```
 
-Applying this to MatchDF has only removed one match from this data set since the duration limits previously applied to the data set has already filtered most of these matches, as would be expected. When teams are inbalanced it would be expected that the match duration would be outside the expected duration of a competitive match.  There are now 49677 matches in this data set.
+Applying this to MatchDF has only removed one match from this data set since the duration limits previously applied has already filtered most of these matches, as would be expected. When teams are inbalanced it would be expected that the match duration would be outside the expected duration of a competitive match.  There are now 49677 matches in this data set.
 
 Let's take a more detailed look at the cleaned hero_id variable's distribution.
 
 ```{r hero_id bar chart}
 # bar plot of hero_id
-HID_Bar <- ggplot(PlayersShort, aes(x = hero_id)) + 
+HID_Bar <- ggplot(PlayersShort, aes(x = hero_id)) +
   geom_bar(width = 0.8, fill = "red") +
   scale_x_discrete(breaks = seq(0, 112, 5), limits = 1:112) +
-  theme(axis.text.x = element_text(angle = 20, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 HID_Bar
 ```
 
@@ -315,7 +326,7 @@ PlayersTeam$team <- ifelse(PlayersTeam$player_slot < 5, "R", "D")
 
 #### **Cleaned Players Dataset**
 
-For this study the following 26 variables from the orginal file 'players' will be used:
+For this study the following 27 variables from the orginal file 'players' will be used:
 
  1 match_id
  2 account_id
@@ -342,10 +353,11 @@ For this study the following 26 variables from the orginal file 'players' will b
 36 gold_killing_heros
 37 gold_killing_creeps
 38 gold_killing_rosan
-40 team
+40 unit_order_total
+41 team
 
 ```{r PlayersDF}
-PlayersDF <- PlayersTeam %>% select(1 : 13, 15 : 17, 24, 26 : 28, 31, 35 : 38, 40)
+PlayersDF <- PlayersTeam %>% select(1 : 13, 15 : 17, 24, 26 : 28, 31, 35 : 38, 40, 41)
 ```
 
 #### **hero_names.csv**
@@ -418,5 +430,5 @@ CombinedDF$WL <- ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "R
 glimpse(CombinedDF)
 ```
 
-The 'CombinedDF' data frame has 420510 observations across 49 variables and represents the collection of all data that will be discussed in this report. This will be the source for all studies going forward in this project.
+The 'CombinedDF' data frame has 420510 observations across 50 variables and represents the collection of all data that will be discussed in this report. This will be the source for all studies going forward in this project.
 

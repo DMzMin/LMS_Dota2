@@ -1,0 +1,158 @@
+---
+title: "Dota 2 Capstone Project - Detailed Analysis"
+author: "Louis MS"
+date: "07/03/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+library(plyr)
+
+# This RPubs document publishes to here: http://rpubs.com/LMS/xxx
+
+```
+
+## **In-Depth Detailed Analysis of Combined Dota 2 Dataset**
+In the introduction and the initial exploratory data analysis two distinct questions come through:
+
+A) Which group of heroes should I learn first?
+B) What strategy should I persue with these heroes?
+
+To answer Question A we will need to study ...
+
+
+Lets look at the different classes and roles each hero takes on againsts the heroes popularity (how often a hero is selected by players) and how well they perform for example win:loss and kill:death ratios.
+
+### **Hero_Names Details and Figures **
+
+#### *Hero_Bar*
+Hero_Bar is a file containig key data with respect to each Hero Name designed to produce an array of bar charts to help explain the data. These variables are:
+
+Hero_Names (rename to "Name"), Class, Role_Count, kills, deaths, assists, denies, last_hits, hero_damage, level and WL
+
+```{r Hero_Bar }
+# bar plot for top 40 most popular hero names 
+Hero_Bar <- CombinedDF %>%
+  group_by(Hero_Names, Class, Role_Count) %>%
+  tally(sort = TRUE)
+
+Hero_Bar <- rename(Hero_Bar, c("Hero_Names"="Name", "n"="HN_Count"))
+
+# heroes win:loss ratio (WLR)
+
+Hero_WLR <- CombinedDF %>%
+  group_by(Hero_Names, WL) %>%
+  tally() %>%
+  spread(key = WL, value = n)
+
+Hero_WLR <- rename(Hero_WLR, c("Hero_Names"="Name"))
+
+Hero_WLR$WLR <- round(Hero_WLR$Win/Hero_WLR$Loss, digits = 2)
+
+Hero_Bar <- left_join(Hero_Bar, Hero_WLR, by = "Name")
+```
+
+
+```{r}
+# heroes kill:death ratio (KDR)
+
+Hero_KDR <- CombinedDF %>% select(Hero_Names, account_id, match_id, WL, level, kills, deaths)
+Hero_KDR <- rename(Hero_KDR, c("Hero_Names"="Name", "account_id"="Player"))
+Hero_KDR$KDR <- round(Hero_KDR$kills / Hero_KDR$deaths, digits = 2)
+
+
+```
+
+
+```{r}
+# percent of tatal matches sampled
+Hero_Bar$Pct <- round(Hero_Bar$HN_Count/sum(Hero_Bar$HN_Count)*100, digits = 1)
+
+# plot showing count and percent for each hero selected
+ggplot(head(Hero_Bar, n = 40), aes(x = reorder(Name, -HN_Count), y = HN_Count, width = 0.8, fill = Class, as.factor = TRUE)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label=Pct, vjust = 0.5, hjust = 0), check_overlap = TRUE) +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1, size = 8)) +
+  xlab("Top 40 Most Popular Heroes") +
+  ylab("Count")
+```
+
+
+```{r}
+# by percent instead of count, with Role_Count displaying on bars
+ggplot(head(Hero_Bar, n = 40), aes(x = reorder(Name, -HN_Count), y = Pct, width = 0.8, fill = Class, as.factor = TRUE)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Role_Count, vjust = 2)) +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1, size = 8)) +
+  xlab("Top 40 Most Popular Heroes") +
+  ylab("Percent")
+
+```
+
+```{r Hero Name use Pct bar chart colored by WLR}
+
+# ggplot of Hero_Bar Count coloured by WLR
+
+ggplot(head(Hero_Bar, n = 40), aes(x = reorder(Name, -HN_Count), y = HN_Count, width = 0.8, fill = WLR)) +
+  scale_fill_gradient2(low = "dark blue", high = "red", mid = "white", midpoint = 1) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Role_Count, vjust = 2)) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 8)) +
+  xlab("Top 40 Most Popular Heroes") +
+  ylab("Heroes Used Count")
+```
+
+This bar chart shows how many times each hero was selected coloured by their respective Win:Loss Ratio (WLR). The number within each bar represents the number of roles each hero is classified with.  For example Windranger (5) has been classified for Carry, Disabler, Support, Nuker and Escape roles, where as Shadow Fiend (2) has been classified for only Carry and Nuker roles. It is also noted that Shadow Fiend has an above par WLR 1.09 where as Windranger has a below par WLR 0.92 which opens for some early thories here. Windranger although more popular and diverse in roles has lost more matches than won, unlike the second most popular Shadow Fiend who only has two roles which are to get strong and deal massive burst damage. 
+
+Here we see two interesting heroes immediately, Windranger and Shadow Fiend who were selected 4.2% and 3.4% of the time respectively. Beyond these two all other heroes in the top 40 were selected between 2.3% and 0.9% of the time.
+
+```{r Looking at Windrunner and Shadow Fiend}
+# print(Hero_Bar[Name = c("Windranger", "Shadow Fiend")])
+
+
+
+```
+
+```{r}
+# bar plot for all hero names
+ggplot(Hero_Bar, aes(x = reorder(Hero_Names, -n), y = n, width = 0.75, fill = Class, as.factor = TRUE)) +
+  geom_bar(stat = "identity", aes()) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0, size = 5))
+```
+
+
+```{r}
+# total Class tally and plot of top 40 most used Heroes
+Class_Ct <- head(Hero_Bar, n = 40) %>%
+  group_by(Class) %>%
+  tally(sort = TRUE)
+
+# percent of tatal matches sampled
+Class_Ct$Pct <- round(Class_Ct$nn/sum(Class_Ct$nn)*100, digits = 1)
+
+ggplot(Class_Ct, aes(x = Class, y = Pct, width = 0.5, fill = Class, as.factor = TRUE)) +
+  geom_bar(stat = "identity")
+Class_Ct
+
+
+```
+
+```{r}
+
+ggplot(Hero_WLR,aes(x = Hero_Names, y = WLR, as.factor = TRUE)) +
+         geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 0, size = 5))
+
+```
+
+
+
+
+
+```

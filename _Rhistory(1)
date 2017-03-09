@@ -1,0 +1,297 @@
+knitr::opts_chunk$set(echo = TRUE)
+players$unit_order_total <- players %>%  cumall(starts_with(unit_order_))
+knitr::opts_chunk$set(echo = TRUE)
+install.packages(c("Matrix", "mgcv", "nlme", "survival"))
+library(knitr)
+install.packages("knitr")
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+install.packages("dplyr")
+install.packages("tidyr")
+install.packages("ggplot2")
+install.packages("reshape2")
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+# This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Wrangle
+# sum all 'unit_order_' records for each player for each match
+players$unit_order_total <- players %>%  cumall(starts_with(unit_order_))
+# sum all 'unit_order_' records for each player for each match
+players$unit_order_total <- players %>%  cumall(starts_with(unit_order_))
+?cumall
+?cumsum
+players$unit_order_total <- players %>%  cumsum(starts_with(unit_order_))
+players$unit_order_total <- players %>% rowsum(starts_with(unit_order_))
+players <- read.csv("players.csv")
+glimpse(players)
+players$unit_order_total <- players %>% rowsum(starts_with(unit_order_))
+players$unit_order_total <- players %>% rowsum(starts_with("unit_order_"))
+?rowsum
+players$unit_order_total <- rowsum(players, group = starts_with("unit_order_"))
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+# This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Wrangle
+# read in match.csv file
+match <- read.csv("match.csv")
+glimpse(match)
+# make a data frame of all variables in 'match' combined with their descriptions
+Variable <- as.character(c("match_id", "start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time", "game_mode", "radiant_win", "negative_votes", "positive_votes", "cluster"))
+Description <- as.character(c("unique interger to identify matches accross all files", "match start time in seconds since 00:00, 01/01/1970, UTC", "length of match in seconds", "total health of all Radiant towers at match end", "total health of all Dire towers at match end", "total health of all Dire barracks at match end", "total health of all Radiant barracks at match end", "timestamp in seconds of when first player is killed from match start", "an integer indicating which game mode the match is playing", "a factor indicating if the radiant team won or lost the match", "number of negative votes a match recieved", "number of positive votes a match recieved", "integer indicating which region of the world the match was played"))
+Match_Overview <- data_frame(Variable, Description)
+kable(Match_Overview, format = "markdown")
+install.packages("rmarkdown")
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+# This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Wrangle
+# read in match.csv file
+match <- read.csv("match.csv")
+glimpse(match)
+# make a data frame of all variables in 'match' combined with their descriptions
+Variable <- as.character(c("match_id", "start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time", "game_mode", "radiant_win", "negative_votes", "positive_votes", "cluster"))
+Description <- as.character(c("unique interger to identify matches accross all files", "match start time in seconds since 00:00, 01/01/1970, UTC", "length of match in seconds", "total health of all Radiant towers at match end", "total health of all Dire towers at match end", "total health of all Dire barracks at match end", "total health of all Radiant barracks at match end", "timestamp in seconds of when first player is killed from match start", "an integer indicating which game mode the match is playing", "a factor indicating if the radiant team won or lost the match", "number of negative votes a match recieved", "number of positive votes a match recieved", "integer indicating which region of the world the match was played"))
+Match_Overview <- data_frame(Variable, Description)
+kable(Match_Overview, format = "markdown")
+# select variables to be examined by histogram
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+# include difference between tower and barracks health from the perspective of the Radiant side, whereby positive values idicate Radiants had more health and negaitve values indicate Dires had more health
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+M$Barracks_Diff <- match$barracks_status_radiant - match$barracks_status_dire
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bins = 10) +
+facet_wrap(~variable, scales = "free_x") +
+theme(axis.text.x = element_text(angle = 20, hjust = 1))
+# Convert start time from seconds to POSIXct date
+MatchNewST <- match %>% mutate(date = as.POSIXct(match$start_time, tz = "UTC", origin = "1970-01-01"))
+# Histogram plot of duration variable
+DurHist <- ggplot(MatchNewST, aes(x = duration)) +
+geom_histogram(bins = 100, fill = "red") +
+scale_x_continuous(breaks = c(0,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000), labels = c("0","1k","2k","3k","4k","5k","6k","7k","8k","9k","10k","11k","12k","13k","14k","15k","16k"))
+DurHist
+# limit the dataset to matches that lasted between 15 and 75 minutes
+MatchNewDur <-  MatchNewST %>% filter (between(duration, 900, 4500))
+glimpse(MatchNewDur)
+# a more detailed histogram of the filtered duration variable
+DurHistNew <- ggplot(MatchNewDur, aes(x = duration)) +
+geom_histogram(bins = 100, fill = "red") +
+scale_x_continuous(breaks = c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000))
+DurHistNew
+# TowerStat_R is the health difference between Radiant and Dire towers at the end of each game.
+TowerStat_R <- MatchNewDur$tower_status_radiant - MatchNewDur$tower_status_dire
+# data frame containing match_duration, TowerStat_R and radiant_win status
+TvTowerStatus <- data.frame(MatchNewDur$duration, TowerStat_R, MatchNewDur$radiant_win)
+colnames(TvTowerStatus) <- c("Duration", "TowerStat_R", "Radiant_Win")
+# GGplot to compare match durations against difference between Radiant and Dire towers health coloured by radiant_win variable.
+G1 <- ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
+print(G1)
+GMTally <- MatchNewDur %>% group_by(game_mode) %>% tally()
+GMTally
+# Collect key variables from 'match' dataset
+MatchDF <- MatchNewDur %>% select(1 : 10, 14)
+players <- read.csv("players.csv")
+glimpse(players)
+# make a data frame of all variables in 'players' combined with their descriptions
+Variables <- as.character(c("match_id", "account_id", "hero_id", "player_slot", "gold", "gold_spent", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "stuns", "hero_damage", "tower_damage", "item_0 to _5", "level", "leaver_status", "xp_hero", "xp_creep", "xp_roshan", "xp_other", "gold_other", "gold_death", "gold_buyback", "gold_abandon", "gold_sell", "gold_destroying_structure", "gold_killing_heros", "gold_killing_creep", "gold_killing_roshan", "gold_killing_couriers"))
+Descriptions <- as.character(c("unique interger to identify matches accross all files", "unique interger to identify players. 0 (zero) represent annonomous players", "unique interger to identify which hero was selected per player", "unique interger where 0-4 represent players on Radiant side and 128-132 the Dire side", "amount of gold player has at match end", "amount of gold player spent during the match", "amount of gold per minute a player accumulated on average during the match", "amount of experience points per minute a player accumulated on average during the match", "total kills a player scored per match", "number of times a player died per match", "number of assists a player gained per match", "number of denies a player performed per match", "number of last hits a player landed on creep per match", "cumulative amount of time a player stunned an enemy player", "cumulative amount of damage a player caused to enemy heroes", "cumulative amount of damage a player caused to enemy towers", "integers referring to items a player equiped during the match", "the hero character level a player obtained by match end", "integer indicating if a player stayed until match end or left early", "experience points gained from killing heros", "experience points gained from killing creep", "experience points gained from killing Roshan, neutral creep boss in jungle", "experience points gained from other sources", "gold gained from other non-conventional sources", "cumulative amount of gold lost due to death", "gold spent buying back lost items", "gold abandoned by a player", "gold gained from selling items", "gold gained from destroying structures e.g. tower, barracks, ancient", "gold gained from killing enemy heroes", "gold gained from killing creeps", "gold gained from killing Roshan, high level neutral creep boss in jungle", "gold gained from killing enemy courriers"))
+Players_Overview <- data_frame(Variables, Descriptions)
+kable(Players_Overview, format = "markdown")
+# sum all 'unit_order_' records for each player for each match
+players$unit_order_total <- rowsum(players, group = starts_with("unit_order_"))
+View(players)
+players$unit_order_total <- rowsum(players, 40:73))
+players$unit_order_total <- rowsum(players, 40:73)
+players$unit_order_total <- rowsum(players[40:73])
+players$unit_order_total <- players %>% mutate(rowsum(40:73))
+players$unit_order_total <- players %>% mutate(rowsum(group = c(40:73)))
+players$unit_order_total <- rowSums(players[40:73])
+PlayersShort <- players[c(1:39,74)]
+View(PlayersShort)
+players$unit_order_total <- rowSums(players[40:73], na.rm = TRUE)
+PlayersShort <- players[c(1:39,74)]
+View(PlayersShort)
+PlayersShort <- players[c(1:39,74)]
+ggplot(PlayersShort, aes(x = unit_order_total)) +
+geom_histogram(bins = 100, fill = "red")
+ggplot(PlayersShort, aes(x = unit_order_total/duration)) +
+geom_histogram(bins = 100, fill = "red")
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+# This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Wrangle
+players$unit_order_total <- rowSums(players[40:73], na.rm = TRUE)
+PlayersShort <- players[c(1:39,74)]
+# sum all 'unit_order_' records for each player for each match
+players$unit_order_total <- rowSums(players[40:73], na.rm = TRUE)
+# collect key information into PlayersShort
+PlayersShort <- players[c(1:39,74)]
+# histogram of unit_order_total
+ggplot(PlayersShort, aes(x = unit_order_total)) +
+geom_histogram(bins = 100, fill = "red")
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+# This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Wrangle
+# read in match.csv file
+match <- read.csv("match.csv")
+glimpse(match)
+# make a data frame of all variables in 'match' combined with their descriptions
+Variable <- as.character(c("match_id", "start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time", "game_mode", "radiant_win", "negative_votes", "positive_votes", "cluster"))
+Description <- as.character(c("unique interger to identify matches accross all files", "match start time in seconds since 00:00, 01/01/1970, UTC", "length of match in seconds", "total health of all Radiant towers at match end", "total health of all Dire towers at match end", "total health of all Dire barracks at match end", "total health of all Radiant barracks at match end", "timestamp in seconds of when first player is killed from match start", "an integer indicating which game mode the match is playing", "a factor indicating if the radiant team won or lost the match", "number of negative votes a match recieved", "number of positive votes a match recieved", "integer indicating which region of the world the match was played"))
+Match_Overview <- data_frame(Variable, Description)
+kable(Match_Overview, format = "markdown")
+# select variables to be examined by histogram
+M <- match[c("start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time")]
+# include difference between tower and barracks health from the perspective of the Radiant side, whereby positive values idicate Radiants had more health and negaitve values indicate Dires had more health
+M$Tower_Diff <- match$tower_status_radiant - match$tower_status_dire
+M$Barracks_Diff <- match$barracks_status_radiant - match$barracks_status_dire
+ggplot(data = melt(M), aes(x = value)) +
+geom_histogram(bins = 10) +
+facet_wrap(~variable, scales = "free_x") +
+theme(axis.text.x = element_text(angle = 20, hjust = 1))
+# Convert start time from seconds to POSIXct date
+MatchNewST <- match %>% mutate(date = as.POSIXct(match$start_time, tz = "UTC", origin = "1970-01-01"))
+# Histogram plot of duration variable
+DurHist <- ggplot(MatchNewST, aes(x = duration)) +
+geom_histogram(bins = 100, fill = "red") +
+scale_x_continuous(breaks = c(0,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000), labels = c("0","1k","2k","3k","4k","5k","6k","7k","8k","9k","10k","11k","12k","13k","14k","15k","16k"))
+DurHist
+# limit the dataset to matches that lasted between 15 and 75 minutes
+MatchNewDur <-  MatchNewST %>% filter (between(duration, 900, 4500))
+glimpse(MatchNewDur)
+# a more detailed histogram of the filtered duration variable
+DurHistNew <- ggplot(MatchNewDur, aes(x = duration)) +
+geom_histogram(bins = 100, fill = "red") +
+scale_x_continuous(breaks = c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000))
+DurHistNew
+# TowerStat_R is the health difference between Radiant and Dire towers at the end of each game.
+TowerStat_R <- MatchNewDur$tower_status_radiant - MatchNewDur$tower_status_dire
+# data frame containing match_duration, TowerStat_R and radiant_win status
+TvTowerStatus <- data.frame(MatchNewDur$duration, TowerStat_R, MatchNewDur$radiant_win)
+colnames(TvTowerStatus) <- c("Duration", "TowerStat_R", "Radiant_Win")
+# GGplot to compare match durations against difference between Radiant and Dire towers health coloured by radiant_win variable.
+G1 <- ggplot(TvTowerStatus, aes(x = Duration, y = TowerStat_R, colour = Radiant_Win)) + geom_point()
+print(G1)
+GMTally <- MatchNewDur %>% group_by(game_mode) %>% tally()
+GMTally
+# Collect key variables from 'match' dataset
+MatchDF <- MatchNewDur %>% select(1 : 10, 14)
+players <- read.csv("players.csv")
+glimpse(players)
+# make a data frame of all variables in 'players' combined with their descriptions
+Variables <- as.character(c("match_id", "account_id", "hero_id", "player_slot", "gold", "gold_spent", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "stuns", "hero_damage", "tower_damage", "item_0 to _5", "level", "leaver_status", "xp_hero", "xp_creep", "xp_roshan", "xp_other", "gold_other", "gold_death", "gold_buyback", "gold_abandon", "gold_sell", "gold_destroying_structure", "gold_killing_heros", "gold_killing_creep", "gold_killing_roshan", "gold_killing_couriers"))
+Descriptions <- as.character(c("unique interger to identify matches accross all files", "unique interger to identify players. 0 (zero) represent annonomous players", "unique interger to identify which hero was selected per player", "unique interger where 0-4 represent players on Radiant side and 128-132 the Dire side", "amount of gold player has at match end", "amount of gold player spent during the match", "amount of gold per minute a player accumulated on average during the match", "amount of experience points per minute a player accumulated on average during the match", "total kills a player scored per match", "number of times a player died per match", "number of assists a player gained per match", "number of denies a player performed per match", "number of last hits a player landed on creep per match", "cumulative amount of time a player stunned an enemy player", "cumulative amount of damage a player caused to enemy heroes", "cumulative amount of damage a player caused to enemy towers", "integers referring to items a player equiped during the match", "the hero character level a player obtained by match end", "integer indicating if a player stayed until match end or left early", "experience points gained from killing heros", "experience points gained from killing creep", "experience points gained from killing Roshan, neutral creep boss in jungle", "experience points gained from other sources", "gold gained from other non-conventional sources", "cumulative amount of gold lost due to death", "gold spent buying back lost items", "gold abandoned by a player", "gold gained from selling items", "gold gained from destroying structures e.g. tower, barracks, ancient", "gold gained from killing enemy heroes", "gold gained from killing creeps", "gold gained from killing Roshan, high level neutral creep boss in jungle", "gold gained from killing enemy courriers"))
+Players_Overview <- data_frame(Variables, Descriptions)
+kable(Players_Overview, format = "markdown")
+# sum all 'unit_order_' records for each player for each match
+players$unit_order_total <- rowSums(players[40:73], na.rm = TRUE)
+# collect key information into PlayersShort
+PlayersShort <- players[c(1:39,74)]
+# histogram of unit_order_total
+ggplot(PlayersShort, aes(x = unit_order_total)) +
+geom_histogram(bins = 100, fill = "red")
+# sum all 'unit_order_' records for each player for each match
+players$unit_order_total <- rowSums(players[40:73], na.rm = TRUE)
+# collect key information into PlayersShort
+PlayersShort <- players[c(1:39,74)]
+# histogram of unit_order_total
+ggplot(PlayersShort, aes(x = unit_order_total)) +
+geom_histogram(bins = 100, fill = "red")
+# select variables to be examined by histogram
+P <- PlayersShort[c("hero_id", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "hero_damage", "hero_healing", "tower_damage", "level")]
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bins = 10) +
+facet_wrap(~variable, scales = "free_x") +
+theme(axis.text.x = element_text(angle = 20, hjust = 1))
+# select variables to be examined by histogram
+P <- PlayersShort[c("hero_id", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "hero_damage", "hero_healing", "tower_damage", "level")]
+ggplot(data = melt(P), aes(x = value)) +
+geom_histogram(bins = 10) +
+facet_wrap(~variable, scales = "free_x") +
+theme(axis.text.x = element_text(angle = 20, hjust = 1))
+# identifying which matches have hero_id 0 present,
+Tally0 <- PlayersShort %>%
+group_by(match_id, hero_id) %>%
+tally() %>%
+filter(hero_id == 0)
+glimpse(Tally0)
+# identify all match_ids that have hero_id 0 in them and remove from the data set MatchDF
+HIDrm <- c(Tally0$match_id)
+MatchDF <- MatchDF %>% filter(!(match_id %in% HIDrm))
+# bar plot of hero_id
+HID_Bar <- ggplot(PlayersShort, aes(x = hero_id)) +
+geom_bar(width = 0.8, fill = "red") +
+scale_x_discrete(breaks = seq(0, 112, 5), limits = 1:112) +
+theme(axis.text.x = element_text(angle = 20, hjust = 1))
+HID_Bar
+# bar plot of hero_id
+HID_Bar <- ggplot(PlayersShort, aes(x = hero_id)) +
+geom_bar(width = 0.8, fill = "red") +
+scale_x_discrete(breaks = seq(0, 112, 5), limits = 1:112) +
+theme(axis.text.x = element_text(angle = 30, hjust = 1))
+HID_Bar
+# bar plot of hero_id
+HID_Bar <- ggplot(PlayersShort, aes(x = hero_id)) +
+geom_bar(width = 0.8, fill = "red") +
+scale_x_discrete(breaks = seq(0, 112, 5), limits = 1:112) +
+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+HID_Bar
+# investigate the number of matches where no one left before the end of the match
+TallyLS <- PlayersShort %>%
+group_by(match_id, leaver_status) %>%
+tally() %>%
+filter(leaver_status != 0)
+glimpse(TallyLS)
+# identify all match_ids that have leaver_Status > 0 and remove from the data set MatchDF
+LSrm <- c(TallyLS$match_id)
+MatchDF <- MatchDF %>% filter(!(match_id %in% LSrm))
+# add variable "team" whereby 'player_slot' values 0-4 represent Radiant team ("R") and 128-132 represent Dire team ("D").
+PlayersTeam <- PlayersShort
+PlayersTeam$team <- ifelse(PlayersTeam$player_slot < 5, "R", "D")
+View(PlayersTeam)
+PlayersDF <- PlayersTeam %>% select(1 : 13, 15 : 17, 24, 26 : 28, 31, 35 : 38, 40, 41)
+View(PlayersDF)
+Hero_Names <- read.csv("hero_names.csv")
+glimpse(Hero_Names)
+Hero_Names["name"] <- NULL
+colnames(Hero_Names) <- c("hero_id", "Hero_Names")
+# table to show the different hero classes and their descriptions
+Hero_Class <- as.character(c("Strength (STR)", "Agility (AGI)", "Intellect (INT)"))
+Class_Descriptions <- as.character(c("warrior-like class mainly dealing melee damage", "aglie class, fast and harder to hit", "spell-weilding class"))
+Hero_Classes <- data_frame(Hero_Class, Class_Descriptions)
+kable(Hero_Classes, format = "markdown")
+# table to show Gamepedia's descriptions of each role type in Dota 2
+Roles <-as.character(c("Carry", "Disabler", "Initiator", "Jungler", "Support", "Durable", "Nuker", "Pusher", "Escape"))
+Gamepedia_Descriptions <- as.character(c("Will become more useful later in the game if they gain a significant gold advantage", "Has a guaranteed disable for one or more of their spells", "Good at starting a teamfight", "Can farm effectively from neutral creeps inside the jungle early in the game", "Can focus less on amassing gold and items, and more on using their abilities to gain an advantage for the team", "Has the ability to last longer in teamfights", "Can quickly kill enemy heroes using high damage spells with low cooldowns", "Can quickly siege and destroy towers and barracks at all points of the game", "Has the ability to quickly avoid death"))
+Hero_Roles <- data_frame(Roles, Gamepedia_Descriptions)
+kable(Hero_Roles, format = "markdown")
+# import updated 'hero_names_mod.csv' file
+Hero_Names <- read.csv("hero_names_mod.csv")
+glimpse(Hero_Names)
+# combine PlayersDF and Hero_Names by the variable 'hero_id'
+PlayersDF <- left_join(PlayersDF, Hero_Names, by = "hero_id")
+# Combine PlayersDF and MatchDF into CombinedDF
+CombinedDF <- left_join(MatchDF, PlayersDF,by = "match_id")
+# add column WL to CombinedDF to indicate Win/Loss for each individual player
+CombinedDF$WL <- ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "R", "Win",
+ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "D", "Loss",
+ifelse(CombinedDF$radiant_win == "False" & CombinedDF$team == "R", "Loss", "Win")))
+glimpse(CombinedDF)
