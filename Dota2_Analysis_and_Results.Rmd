@@ -1,0 +1,85 @@
+---
+title: "Dota2_Analysis_and_Results"
+author: "Louis MS"
+date: "22/03/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# This RPubs document publishes to here: http://rpubs.com/LMS/xxx
+```
+
+This document takes the previous work done in 'Dota2_Data_Wrangling.Rmd' which produced the data frame 'CombinedDF'. Lets take a quick look as a reminder of the variables collected.
+
+```{r quick look at CombinedDF}
+glimpse(CombinedDF)
+```
+
+## Gold Accumulation - Linear Regression Models
+In this section we will address the question:
+
+"How do I finish with a good amount of gold as a proxy to being 'sucessful' in the game?"
+
+let's fist look at how gold compares to match duration.
+```{r Duration vs Gold XY plot}
+ggplot(CombinedDF, aes(x = duration, y = gold, col = WL)) +
+  geom_point(size = 0.2)
+```
+
+Here we see quite a broad range of gold values for different durations. Lets look at the linear model as see what it tells us.
+
+```{r linear model 1 - Gold predicted by duration}
+LM1 <- lm(gold ~ duration, data=CombinedDF)
+summary(LM1)
+
+```
+
+Model 'LM1' shows both the intercept and duration regression coefficient have very low P values, indicating that we can definitely reject the null hypothesis that there is no correlation between these variables. Gold and duration do correlate, however the very low R-Squared value of 0.02 tells us that the model is not very good. Lets see if we can improve this model by including additional variables. Lets add the variable 'deaths' to the model since when a hero dies in a match they lose a certain amount of gold.
+
+```{r linear model 2 - Gold predicted by duration and deaths}
+LM2 <- lm(gold ~ duration + deaths, data=CombinedDF)
+summary(LM2)
+
+```
+
+Model 'LM2' again displays a very low P value for all concerned again indicating that all these variables correlate. We also see a significant improvement the R-squared value to 0.16. Adding deaths has improved the model. It is noted that in Dota 2 the amount of gold you lose upon death is tied to the hero's current level. Let's multiple level with deaths and see if this improves the model further.
+
+```{r linear model 3 - Gold predicted by duration, deaths and level}
+LM3 <- lm(gold ~ duration + deaths*level, data=CombinedDF)
+summary(LM3)
+
+```
+
+Model 'LM3' again shows an improvement in R-squared to 0.23 however we now see that duration has a much higher probability (P value) that the null hypothesis for this variable is correct, that it does not hold a correlation. This has been a significant jump from 2^-16 to 0.21. Let's look at another model, adding kills since killing enemy heroes is a supposed to be a significant source of gold.
+
+```{r linear model - Gold predicted by duration, kills, deaths and level}
+LM4 <- lm(gold ~ duration + kills + deaths*level, data=CombinedDF)
+summary(LM4)
+
+```
+
+Model 'LM4' shows very little improvement in R-squared, which may indicate a drop in quality of the model since adding variables to linear models naturally raises the R-squared value anyway. Therefore we can conclude that adding kills to this model has decreased the model's ability to predict the amount of gold expected to finish with. Interestingly though adding kills here has returned duration's P value to the very low value of 2^-16, bringing back its likelyhood of correlating to the gold variable. Lets now include the gold_spent variable.
+
+```{r linear model - Gold predicted by duration, kills, deaths, level and gold_spent}
+LM5 <- lm(gold ~ duration + kills + deaths * level + gold_spent, data=CombinedDF)
+summary(LM5)
+```
+
+Here we see model 'LM5' shows a 5% improvement in R-squared to 0.27 and all variable with a very low P value. This is possibly the best model for predicting the amount of gold a hero will finish with. Lets take a look at the plots for model 'LM5'.
+
+```{r plots of model 'LM5'}
+plot(LM5, which = c(1, 4))
+```
+
+#### Gold Accumulation Conclusions
+All models generated above showed that there was reason to believe that duration, kills, deaths, level and gold_spent all correlate with the amount of gold a hero will finish with, despite these models having low R-squared values. The best model 'LM5' achieved an R-squared value of 0.274 which indicates that variance from the model is high. However we can still conclude that to finish the game with high amounts of gold players should try to kill enemy heroes while avoiding death themselves, attain high levels and spend gold wisely at the shop.
+
+## Best ways to play - Logistic Regression Models
+
+For this section we will look at a selection of heroes based upon how often they are selected for each match. The top two heroes most selected are 'Windranger' and 'Shadow Fiend'.
