@@ -1,7 +1,7 @@
 ---
 title: "Dota 2 Capstone Report - The Dataset and Initial EDA"
 author: "Louis MS"
-date: "21/02/2017"
+date: "15/03/2017"
 output: html_document
 ---
 
@@ -404,8 +404,14 @@ For more details on roles please see dota2.gamepedia.com/Role [link](http://dota
 ```{r Hero_Names Modified}
 # import updated 'hero_names_mod.csv' file
 Hero_Names <- read.csv("hero_names_mod.csv")
-glimpse(Hero_Names)
 
+# add All_Roles column
+Hero_Names <- Hero_Names %>%
+    unite(col=All_Roles, Carry_Car, Disabler_Dis, Initiator_Ini, Jungler_Jun, Support_Sup, Durable_Dur, Nuker_Nuk, Pusher_Pus, Escape_Esc, sep = " ", remove = FALSE)
+
+Hero_Names$All_Roles <- gsub('NA', '', Hero_Names$All_Roles)
+
+glimpse(Hero_Names)
 ```
 
 Each hero is now linked to their unique class and collection of roles as defined by the community at dota2.gamepedia.com/Role [link](http://dota2.gamepedia.com/Role). These will be bound the the PlayerDF data set.
@@ -413,6 +419,7 @@ Each hero is now linked to their unique class and collection of roles as defined
 ```{r add Hero Names data}
 # combine PlayersDF and Hero_Names by the variable 'hero_id'
 PlayersDF <- left_join(PlayersDF, Hero_Names, by = "hero_id")
+glimpse(PlayersDF)
 ```
 
 ## **CombinedDF Data Frame**
@@ -427,8 +434,9 @@ CombinedDF$WL <- ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "R
                   ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "D", "Loss", 
                   ifelse(CombinedDF$radiant_win == "False" & CombinedDF$team == "R", "Loss", "Win")))
 
+
 glimpse(CombinedDF)
 ```
 
-The 'CombinedDF' data frame has 420510 observations across 50 variables and represents the collection of all data that will be discussed in this report. This will be the source for all studies going forward in this project.
+The 'CombinedDF' data frame has 420510 observations across 51 variables and represents the collection of all data that will be discussed in this report. This will be the source for all studies going forward in this project.
 

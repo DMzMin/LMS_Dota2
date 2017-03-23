@@ -12,7 +12,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-# This RPubs document publishes to here: http://rpubs.com/LMS/xxx
+# This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Analysis_and_Results
 ```
 
 This document takes the previous work done in 'Dota2_Data_Wrangling.Rmd' which produced the data frame 'CombinedDF'. Lets take a quick look as a reminder of the variables collected.
@@ -32,7 +32,39 @@ ggplot(CombinedDF, aes(x = duration, y = gold, col = WL)) +
   geom_point(size = 0.2)
 ```
 
-Here we see quite a broad range of gold values for different durations. Lets look at the linear model as see what it tells us.
+Here we see quite a broad range of gold values for different durations. Lets look at some heroes individually. Lets take a look at heroes' popularity and the percentage of matches they tend to win.
+
+```{r Hero populatiry and win percentage}
+# bar plot for most popular hero names 
+Hero_Bar <- CombinedDF %>%
+  group_by(Hero_Names, Class, Role_Count, All_Roles) %>%
+  tally(sort = TRUE) %>%
+  rename(Name=Hero_Names, HN_Count=n)
+
+# Heroes win percentage (HWin_Pct)
+
+HWin_Pct <- CombinedDF %>%
+  group_by(Hero_Names, WL) %>%
+  tally() %>%
+  spread(key = WL, value = n) %>%
+  rename(Name=Hero_Names) %>%
+  mutate(Hero_Win_Pct = round(Win/(Win + Loss), digits = 2))
+
+Hero_Bar <- left_join(Hero_Bar, HWin_Pct, by = "Name")
+
+# ggplot of heroes ordered by popularity and color by their win percentage
+ggplot(Hero_Bar, aes(x = reorder(Name, -HN_Count), y = HN_Count, width = 0.8, fill = Hero_Win_Pct)) +
+  scale_fill_gradient2(low = "dark blue", high = "red", mid = "white", midpoint = 0.5) +
+  geom_bar(stat = "identity") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 8)) +
+  xlab("Top 40 Most Popular Heroes") +
+  ylab("Heroes Used Count")
+
+```
+
+This plot show a significant popularity for the top two most popular; Windranger with 
+
+Lets look at the linear model as see what it tells us.
 
 ```{r linear model 1 - Gold predicted by duration}
 LM1 <- lm(gold ~ duration, data=CombinedDF)
@@ -40,7 +72,7 @@ summary(LM1)
 
 ```
 
-Model 'LM1' shows both the intercept and duration regression coefficient have very low P values, indicating that we can definitely reject the null hypothesis that there is no correlation between these variables. Gold and duration do correlate, however the very low R-Squared value of 0.02 tells us that the model is not very good. Lets see if we can improve this model by including additional variables. Lets add the variable 'deaths' to the model since when a hero dies in a match they lose a certain amount of gold.
+Model 'LM1' shows both the intercept and duration regression coefficient have very low P values, indicating that we can definitely reject the null hypothesis that there is no correlation between these variables. Gold and duration do correlate positively, however the very low R-Squared value of 0.02 tells us that the model is not very good. Lets see if we can improve this model by including additional variables. Lets add the variable 'deaths' to the model since when a hero dies in a match they lose a certain amount of gold.
 
 ```{r linear model 2 - Gold predicted by duration and deaths}
 LM2 <- lm(gold ~ duration + deaths, data=CombinedDF)
@@ -48,7 +80,7 @@ summary(LM2)
 
 ```
 
-Model 'LM2' again displays a very low P value for all concerned again indicating that all these variables correlate. We also see a significant improvement the R-squared value to 0.16. Adding deaths has improved the model. It is noted that in Dota 2 the amount of gold you lose upon death is tied to the hero's current level. Let's multiple level with deaths and see if this improves the model further.
+Model 'LM2' displays a very low P value for all concerned variables indicating that all these variables correlate with deaths showing a negative correlation to gold. We also see a significant improvement in the R-squared value to 0.16 indicating that adding deaths has improved the model. It is noted that in Dota 2 the amount of gold you lose upon death is tied to the hero's current level. Let's multiple level with deaths and see if this improves the model further.
 
 ```{r linear model 3 - Gold predicted by duration, deaths and level}
 LM3 <- lm(gold ~ duration + deaths*level, data=CombinedDF)
@@ -56,7 +88,19 @@ summary(LM3)
 
 ```
 
-Model 'LM3' again shows an improvement in R-squared to 0.23 however we now see that duration has a much higher probability (P value) that the null hypothesis for this variable is correct, that it does not hold a correlation. This has been a significant jump from 2^-16 to 0.21. Let's look at another model, adding kills since killing enemy heroes is a supposed to be a significant source of gold.
+Model 'LM3'  shows an improvement in R-squared to 0.23 however we also see that duration has a much higher probability of 0.21 that the null hypothesis for this variable is correct, that it does not hold a correlation in this model.
+
+```{r duration vs level xy plot}
+ggplot(CombinedDF, aes(x = duration, y = level, col = WL)) +
+  geom_point(size = 0.2)
+
+LvlDur_lm <- lm(level ~ duration, data=CombinedDF)
+summary(LvlDur_lm)
+
+plot(LvlDur_lm)
+```
+
+Let's look at another model, adding kills since killing enemy heroes is a supposed to be a significant source of gold.
 
 ```{r linear model - Gold predicted by duration, kills, deaths and level}
 LM4 <- lm(gold ~ duration + kills + deaths*level, data=CombinedDF)
@@ -73,7 +117,7 @@ summary(LM5)
 
 Here we see model 'LM5' shows a 5% improvement in R-squared to 0.27 and all variable with a very low P value. This is possibly the best model for predicting the amount of gold a hero will finish with. Lets take a look at the plots for model 'LM5'.
 
-```{r plots of model 'LM5'}
+```{r plots of model LM5}
 plot(LM5, which = c(1, 4))
 ```
 
