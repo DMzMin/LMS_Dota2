@@ -32,7 +32,7 @@ ggplot(CombinedDF, aes(x = duration, y = gold, col = WL)) +
   geom_point(size = 0.2)
 ```
 
-Here we see quite a broad range of gold values for different durations. Lets look at some heroes individually. Lets take a look at heroes' popularity and the percentage of matches they tend to win.
+Here we see quite a broad range of gold values for different durations. Lets look at some heroes individually to see if we can clean up the analysis. Lets take a look at heroes' popularity and the percentage of matches they tend to win.
 
 ```{r Hero populatiry and win percentage}
 # bar plot for most popular hero names 
@@ -57,12 +57,25 @@ ggplot(Hero_Bar, aes(x = reorder(Name, -HN_Count), y = HN_Count, width = 0.8, fi
   scale_fill_gradient2(low = "dark blue", high = "red", mid = "white", midpoint = 0.5) +
   geom_bar(stat = "identity") +
     theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 8)) +
-  xlab("Top 40 Most Popular Heroes") +
+  xlab("Heroes ordered by popularity") +
   ylab("Heroes Used Count")
 
 ```
 
-This plot show a significant popularity for the top two most popular; Windranger with 
+This plot show a significant level of popularity for the top two most popular; Windranger and Shadow Fiend. It is also noted that Windranger loses more than she wins (blue shading indicates a <0.5 value for 'Hero_Win_Pct') and Shadow Fiend wins more than he loses (red shading indication >0.5 value for 'Hero_Win_Pct'), albeit these are both relatively close to the white 0.5 value for 'Hero_Win_Pct. Lets also call for the heroes with the highest and lowest 'Hero_Win_Pct'.
+
+```{r Heroes with highest and lowest Hero_Win_Pct}
+# ggplot of heroes ordered by popularity and color by their win percentage
+ggplot(Hero_Bar, aes(x = reorder(Name, -Hero_Win_Pct), y = Hero_Win_Pct, width = 0.8, fill = HN_Count)) +
+  scale_fill_gradient2(low = "dark blue", high = "red", mid = "white", midpoint = 5000) +
+  geom_bar(stat = "identity") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 8)) +
+  xlab("Heroes ordered by win percentage") +
+  ylab("Heroes win percentage")
+
+```
+
+Here we see Omniknight has the highest win percentage of `r max(Hero_Bar$Hero_Win_Pct)` and Shadow Demon has the lowest win percentage of `r min(Hero_Bar$Hero_Win_Pct)`. We will examine these two heroes as well to get an idea of how this
 
 Lets look at the linear model as see what it tells us.
 
