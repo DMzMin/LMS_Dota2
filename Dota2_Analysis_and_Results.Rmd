@@ -75,39 +75,51 @@ ggplot(Hero_Bar, aes(x = reorder(Name, -Hero_Win_Pct), y = Hero_Win_Pct, width =
 
 ```
 
-Here we see Omniknight has the highest win percentage of `r max(Hero_Bar$Hero_Win_Pct)` and Shadow Demon has the lowest win percentage of `r min(Hero_Bar$Hero_Win_Pct)`. We will examine these two heroes as well to get an idea of how this
+Here we see Omniknight has the highest win percentage of `r max(Hero_Bar$Hero_Win_Pct)` and Shadow Demon has the lowest win percentage of `r min(Hero_Bar$Hero_Win_Pct)`. We will examine these two heroes as well to get an idea of how this might vary the model.
 
-Lets look at the linear model as see what it tells us.
+### Windranger Linear Model
+Lets collect all data on Windranger and look at the duration vs gold XY plot.
 
-```{r linear model 1 - Gold predicted by duration}
-LM1 <- lm(gold ~ duration, data=CombinedDF)
-summary(LM1)
+```{r Windranger duration vs gold XY plot}
+# Selecting all Windranger data
+Windranger <- CombinedDF[which(CombinedDF$Hero_Names=="Windranger"),]
+
+# Windranger duration vs gold XY plot
+ggplot(Windranger, aes(x = duration, y = gold, col = WL)) +
+  geom_point(size = 0.2)
+```
+
+This plot shows Windranger's match duration vs gold, coloured by Win/Loss. The Windranger data frame contains 17597 observations. Let's look at gold and duration's linear relationship for Windranger.
+
+```{r Windranger linear model 1 - gold predicted by duration}
+WR_LM1 <- lm(gold ~ duration, data=Windranger)
+summary(WR_LM1)
 
 ```
 
-Model 'LM1' shows both the intercept and duration regression coefficient have very low P values, indicating that we can definitely reject the null hypothesis that there is no correlation between these variables. Gold and duration do correlate positively, however the very low R-Squared value of 0.02 tells us that the model is not very good. Lets see if we can improve this model by including additional variables. Lets add the variable 'deaths' to the model since when a hero dies in a match they lose a certain amount of gold.
+Model 'WR_LM1' shows both the intercept and duration regression coefficient have very low P values, indicating that we can definitely reject the null hypothesis that there is no correlation between these variables. Gold and duration do correlate slightly positively, however the very low R-Squared value of 0.02678 tells us that the model is not very good. Lets see if we can improve this model by including additional variables. Lets add the variable 'deaths' to the model since when a hero dies in a match they lose a certain amount of gold.
 
 ```{r linear model 2 - Gold predicted by duration and deaths}
-LM2 <- lm(gold ~ duration + deaths, data=CombinedDF)
-summary(LM2)
+WR_LM2 <- lm(gold ~ duration + deaths, data=Windranger)
+summary(WR_LM2)
 
 ```
 
-Model 'LM2' displays a very low P value for all concerned variables indicating that all these variables correlate with deaths showing a negative correlation to gold. We also see a significant improvement in the R-squared value to 0.16 indicating that adding deaths has improved the model. It is noted that in Dota 2 the amount of gold you lose upon death is tied to the hero's current level. Let's multiple level with deaths and see if this improves the model further.
+Model 'WR_LM2' displays a very low P value for all concerned variables indicating that all these variables correlate, with deaths showing a strong negative correlation to gold. We also see a significant improvement in the R-squared value to 0.1663 indicating that adding deaths has improved the model. It is noted that in Dota 2 the amount of gold you lose upon death is tied to the hero's current level. Let's multiple level with deaths and see if this improves the model further.
 
 ```{r linear model 3 - Gold predicted by duration, deaths and level}
-LM3 <- lm(gold ~ duration + deaths*level, data=CombinedDF)
-summary(LM3)
+WR_LM3 <- lm(gold ~ duration + deaths*level, data=Windranger)
+summary(WR_LM3)
 
 ```
 
-Model 'LM3'  shows an improvement in R-squared to 0.23 however we also see that duration has a much higher probability of 0.21 that the null hypothesis for this variable is correct, that it does not hold a correlation in this model.
+Model 'WR_LM3'  shows an improvement in R-squared to 0.2395 however we also see that deaths has a much higher probability of 0.199 that the null hypothesis for this variable is correct, that it does not hold a correlation in this model. This is due to the number of deaths per match and the duration of matches are intrinsically linked.
 
 ```{r duration vs level xy plot}
-ggplot(CombinedDF, aes(x = duration, y = level, col = WL)) +
+ggplot(Windranger, aes(x = duration, y = level, col = WL)) +
   geom_point(size = 0.2)
 
-LvlDur_lm <- lm(level ~ duration, data=CombinedDF)
+LvlDur_lm <- lm(level ~ duration, data=Windranger)
 summary(LvlDur_lm)
 
 plot(LvlDur_lm)
@@ -116,16 +128,16 @@ plot(LvlDur_lm)
 Let's look at another model, adding kills since killing enemy heroes is a supposed to be a significant source of gold.
 
 ```{r linear model - Gold predicted by duration, kills, deaths and level}
-LM4 <- lm(gold ~ duration + kills + deaths*level, data=CombinedDF)
-summary(LM4)
+WR_LM4 <- lm(gold ~ duration + kills + deaths*level, data=Windranger)
+summary(WR_LM4)
 
 ```
 
-Model 'LM4' shows very little improvement in R-squared, which may indicate a drop in quality of the model since adding variables to linear models naturally raises the R-squared value anyway. Therefore we can conclude that adding kills to this model has decreased the model's ability to predict the amount of gold expected to finish with. Interestingly though adding kills here has returned duration's P value to the very low value of 2^-16, bringing back its likelyhood of correlating to the gold variable. Lets now include the gold_spent variable.
+Model 'WR_LM4' shows very little improvement in R-squared, which may indicate a drop in quality of the model since adding variables to linear models naturally raises the R-squared value anyway. Therefore we can conclude that adding kills to this model has decreased the model's ability to predict the amount of gold expected to finish with. Interestingly though adding kills here has returned duration's P value to the very low value of 2^-16, bringing back its likelyhood of correlating to the gold variable. Lets now include the gold_spent variable.
 
 ```{r linear model - Gold predicted by duration, kills, deaths, level and gold_spent}
-LM5 <- lm(gold ~ duration + kills + deaths * level + gold_spent, data=CombinedDF)
-summary(LM5)
+WR_LM5 <- lm(gold ~ duration + kills + deaths * level + gold_spent, data=Windranger)
+summary(WR_LM5)
 ```
 
 Here we see model 'LM5' shows a 5% improvement in R-squared to 0.27 and all variable with a very low P value. This is possibly the best model for predicting the amount of gold a hero will finish with. Lets take a look at the plots for model 'LM5'.
