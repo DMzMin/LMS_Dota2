@@ -1,0 +1,97 @@
+---
+title: "Testing_Linear_Models"
+author: "Louis MS"
+date: "27/03/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r} 
+ggplot(Windranger, aes(x = xp_per_min, y = gold, col = WL)) +
+  geom_point(size = 0.2)
+```
+
+
+Variables to test against gold:
+duration      (9)
+gold_spent    (7)
+gold_per_min  (1)
+xp_per_min    (3)
+kills         (4)
+deaths        (8)
+level         (5)
+hero_damage   (6) 
+tower_damage  (2)
+
+Number refers to the highest R-squared value of each model when modelly gold vs single variable.
+
+```{r gold vs ...}
+LM1 <- lm(gold ~ duration * gold_per_min + tower_damage + hero_damage + deaths * xp_per_min + gold_spent, data=Windranger)
+summary(LM1)
+
+```
+
+R-squared = 0.02678
+
+```{r gold v gold_spent}
+LM2 <- lm(gold ~ gold_spent, data=Windranger)
+summary(LM2)
+```
+
+R-squared = 0.07571
+
+```{r gold v gold_per_min}
+LM3 <- lm(gold ~ gold_per_min, data=Windranger)
+summary(LM3)
+```
+
+R-squared = 0.2604
+
+```{r gold v xp_per_min}
+LM4 <- lm(gold ~ xp_per_min, data=Windranger)
+summary(LM4)
+```
+
+R-squared = 0.1797
+
+```{r gold v kills}
+LM5 <- lm(gold ~ kills, data=Windranger)
+summary(LM5)
+```
+
+R-squared = 0.1434
+
+```{r gold v deaths}
+LM6 <- lm(gold ~ deaths, data=Windranger)
+summary(LM6)
+```
+
+R-squared = 0.07458
+
+```{r gold v level}
+LM7 <- lm(gold ~ level, data=Windranger)
+summary(LM7)
+```
+
+R-squared = 0.1382
+
+```{r gold v hero_damage}
+LM8 <- lm(gold ~ hero_damage, data=Windranger)
+summary(LM8)
+```
+
+R-squared = 0.1
+
+```{r gold v tower_damage}
+LM9 <- lm(gold ~ gold_spent, data=Windranger)
+summary(LM9)
+```
+
+R-squared = 0.2502
+
+Windranger.lm <- lm(gold ~ duration * gold_per_min + Win + gold_spent + deaths * xp_per_min + hero_damage, data=Windranger)
+summary(WR_LM5)
+

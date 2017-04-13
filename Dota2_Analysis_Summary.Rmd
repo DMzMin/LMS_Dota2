@@ -1,0 +1,132 @@
+---
+title: "Dota2_Analysis_Summary"
+author: "Louis MS"
+date: "10/04/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(caTools)
+
+# This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Analysis_Summary
+```
+
+```{r loading CombinedDF, include=FALSE}
+# This document uses the 'CombinedDF' data frame generated at the end of the  'Dota2_Data_Wrangling.Rmd' document. 
+
+# load CombinedDF.csv file for analysis
+CombinedDF <- read.csv(file = "CombinedDF.csv")
+```
+
+### Linear Regression Modelling of Gold in Dota 2
+
+A key component in Dota 2 is gold which allows players to buy and upgrade equipment to make them perform better in a match and so we can use the variable gold as a proxy indicator for being sucessful in the game. The gold variable is how much gold a hero finishes with when the match end. Gold can be aquired by killing enemy heroes and creep. Gold is lost when a hero dies and the amount of gold lost per death is directly tied to the hero's level when they die. Gold can also be spent at the shop to upgrade equipment during the match.
+
+Gold was compared to several other variables in several multiple linear regression models to identify how influential each independent variable was upon the dependent gold variable.  The most important variables are summarised in the table below.
+
+```{r independent variables influetial to gold, include=FALSE}
+Influential.Variables <- as.character(c("duration", "gold_per_min", "Win", "gold_spent", "deaths", "xp_per_min", "hero_damage"))
+Impact <- as.character(c("The length of matches will significantly impact the amount of gold a hero will finish with", "the rate of gold a hero gathers through the match", "Playing for a winning team will most likely produce more gold", "Spending gold will significantly impact how much a hero finishes with", "When a hero dies they lose an amount of gold", "The amount of gold lost upon death is determined by their level. Level is a discrete variable so continous variable 'xp_per_min' is used to represent level", "Killing and assisting in killing enemy heroes provide gold. The continious variable 'hero_damage' represents these two discrete variables"))
+
+Gold.Variables <- data.frame(Influential.Variables, Impact)
+kable(Gold.Variables, format = "markdown")
+```
+
+These variables were selected by previously testing them in the 'Doat2_Analysis_and_Results.Rmd' and 'Testing_Linear_Models.Rmd' documents.
+
+Lets take a look at how these independent variables impact gold in a multi-linear regression model for the most selected hero in the dataset, Windranger. In this model 'duration' and 'gold_per_min' will be combined as interactions terms as will 'deaths' and 'xp_per_min' as these are significantly linked pairs. Here the variable'xp_per_min' is used over 'level' because 'level' represents the hero's level at the end of the match and is disctete where as 'xp_per_min' is a continious variable that better represents a hero's growth in level throughout the match.
+
+```{r Windranger Linear Model}
+# Selecting all Windranger data
+Windranger <- CombinedDF[which(CombinedDF$Name=="Windranger"),]
+
+Windranger.lm <- lm(gold ~ duration * gold_per_min + Win + gold_spent + deaths * xp_per_min + hero_damage, data=Windranger)
+summary(Windranger.lm)
+```
+
+### Windranger Multi-linear Regression Model Conclusions
+In the Windranger's linear model we see that all the independent variables have very low P-values, with 'deaths' having the highest P-value of 0.278%. This indicates that the probability these variables are not related to gold is very low and we can assume that there is some sort of relationship here. The Adjusted R-squared value of 0.7233 also indicates that the model is a good fit for the data.
+
+The variable 'Win' has a positive regression coefficient of 893.8, which indicates that winning matches has a very strong positive relationship with the amount of gold a hero finishes with. This is expected since being on the winning team will open more opportunities for a hero to collect gold and less opportunities to losing it via deaths. This suggests that the methods employed for winning matches are also tied to gaining gold.
+
+The variable 'gold_spent' has a negative regression coefficient of about -0.6 which is expected since the more you spend the less gold a hero will have at the end of the match. Interestingly though this coefficient is relatively close to zero, suggesting that spending gold does not have as much of an impact as might be expected. This is likely to be due to that spending gold has the purpose of giving heroes access to better equipment which goes on to help them perform better and possibly be more efficient at gaining gold. The independent variables such as 'duration' and 'Win' are likely to impact this variable.
+
+The variable 'xp_per_min' show a fairly strong positive relationship with a regression coefficient of nearly 3. This is to be expected since the faster a hero levels up the more likely it is that hero will be higher level than their opponents. This means they will be able to kill their opponents more quickly and have a higher chance of surviving their attacks and dying less often.
+
+The 'deaths' * 'xp_per_min' interaction show a negative regression coefficient of -0.4 which is to be expected since the amount of gold lost every time a hero dies is a multiple of their level when they die. Interestingly the 'deaths' variable shows a positive relationship here. It was noted that this changed from negative when duration is included in the model. It is likely that this is due to that longer matches will accrue more deaths overall and that if you are on a losing team, your level will be lower, losing less gold per death than for a higher level player.
+
+We see that 'duration' * 'gold_per_min' has a positive relationship to 'gold' since this represents the total gold collected per match; the more gold collected in total the more likely it is a hero will have more gold in pocket at the end of the match. Interestingly this is vary shallow, almost flat positive relationship with a regression coefficient of 0.01. This suggests that although a hero can collect large volumes of gold, other variables are countering this effect. It is also noted that 'duration' and 'gold_per_min' on their own have quite significant negative regression coefficients. The 'duration' variable is likely impacted by other variables such as 'deaths' because the longer the match continues the more deaths a hero is likely to experience, therefore losing more gold. Also in longer matches hero levels (represented by 'xp_per_min') are going to be higher, leading to more gold lost per death.
+
+In conclusion for players to end matches rich with gold they should avoid dying and spend their gold wisely when buying equipment and upgrades that will significantly boost their chances of winning matches. Ideally they should try to not let matches go on for too long while gathering xp from as many sources as possible. Gaining levels fast will lead to higher chances of winning and therefore more likely to have gold in their pockets at the end. Most importantly they should try to win matches as gaining gold is akin to winning.
+
+### Best ways to play - Logistic Regression Modelling of Win
+With so many things to do in a Dota 2 match it can be difficult to know what one should do when first starting out to help the team win a match.
+
+Let's take a look at logistic regression modelling for Windranger to infer which variables are important to winning. For this we will use Windranger's matches since Windranger is the most used hero by far and is considered more of a generalist which can cover multiple roles. To narrow down these variable previous modelling was conducted in the 'Dota2_Analysis_and_Results.Rmd' document.
+
+```{r Windranger Logistic Regression Modelling}
+# set the seed point
+set.seed(1234)
+
+# Split the Windranger data set into Training and Testing sets
+SplitWR <- sample.split(Windranger, SplitRatio = 0.5)
+
+TrainWR <- subset(Windranger, SplitWR == TRUE)
+TestWR <- subset(Windranger, SplitWR == FALSE)
+
+# build logistic regression model for Windranger using duration, gold_spent, gold_per_min, xp_per_min, deaths, assists, hero_damage and unit_order_total
+Windranger.LogM <- glm(Win ~ duration + gold_spent + gold_per_min + xp_per_min + deaths + assists + hero_damage + unit_order_total, data = TrainWR, family = binomial)
+summary(Windranger.LogM)
+
+```
+
+The logistic regression model here shows all variables with very low P-values indicating that they all have some sort of significance towards winning matches in Dota 2.
+
+Here we see that the variable with the largest positive regression coefficient is 'assists', which is one of the key combat statistics recorded in the game. Interestingly when 'kills' is added to the model we find the following.
+
+```{r adding kills variable to logistic regression model}
+# build logistic regression model for Windranger using duration, gold_spent, gold_per_min, xp_per_min, deaths, assists, hero_damage and unit_order_total
+Windranger.LogM_Kills <- glm(Win ~ gold_spent + gold_per_min + xp_per_min + deaths + kills + assists + hero_damage + duration * unit_order_total, data = TrainWR, family = binomial)
+summary(Windranger.LogM_Kills)
+
+```
+
+Here we see 'kills' has a much higher P-value of 0.264, a probablility of mearly 30% that kills is not significant to winning. So assisting in kills is significant but scoring the killing blow to those kills is not. This means that enguaging in combat is important, as would be expected as this in one of the primary activities in the game, but supporting the kills of enemy players is more important than getting the kill.
+
+Lets check the original model for it predictive powers to see how well it holds up.
+
+```{r running predictions on the test set to see how valid the model is}
+# create prediction based upon model made previously
+PredictTestWR <- predict(Windranger.LogM, type = "response", newdata = TestWR)
+
+# compare prediction against actual results iin a confusion matrix using a threshold of 0.5
+table(TestWR$Win, PredictTestWR > 0.5)
+
+```
+
+Here we see the following model accuracy and the baseline accuracy:
+Model Accuracy = (4164+3663)/(4164 + 456 + 516 + 3663)
+Model Accuracy = 88.95% (to 4SF)
+
+Baseline Accuracy = (4164 + 456)/(4164 + 456 + 516 + 3663)
+Baseline Accuracy = 52.51% (to 4SF)
+
+With a model accuracy of nearly 89% and a baseline accuracy of 52.5% we can infer that the model is pretty good and the conclusions around kills and assists is good.
+
+### Logistic Regrssion Model Conclusions
+Logistic regression modelling was use to see if any key activitites that contribute towards winning matches in Dota 2 can be inferred. Several variables were investigated and eventually the model Windranger.LogM was generated and was deemed the best model so far. 
+
+The independent variables 'assists' included in this model showed a positive relationship with winning. Interestingly when the variable 'kills' was added to the model it was seen to have a much larger P-value of 0.297 indicating that it was not hugely significant to winning. So although assists was significant, kills were not. 
+
+For a game that is largely about battling enemy players, this seemed very interesting.  With 'assists' being relevant this means that enguaging in combat and helping out team mates in battle was an important contributor to winning, but actually scoring the final hit and getting kills is not as significant. 
+
+It is also noted that 'deaths' has a significant negative impact to winning matches. When a hero dies they must wait a period of time before they can re-join the match. This makes sense as if a hero is dead that would mean there would be a mismatch on the field of 4 verus 5 during the down time the dead hero has to wait, opening a significnat advantage for the opposing team.
+
+So in conclusion a good strategy to winning matches in Dota 2 is to support your team mates in combat, but do not over extend to get the kills as you may expose yourself to more danger than nessessary which could lead to a death, a significant detractor from winning.
+
+

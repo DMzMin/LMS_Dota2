@@ -1,0 +1,135 @@
+ 1. Dota 2 Presentation
+========================================================
+
+author: Louis Montagu-Smith
+date: 10th April 2017
+autosize: true
+transition: rotate
+transition-speed: slow
+
+
+![](Dota2_logo.png)
+![](Dota2_front.jpg)
+
+<small>http://blog.dota2.com/</small>
+
+```{r load key objects, cache=TRUE,echo=FALSE}
+library(knitr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+
+CombinedDF <- read.csv("CombinedDF.csv")
+
+```
+
+2. What is Defence Of The Acients 2?
+========================================================
+
+![](Dota_2_minimap.jpg)
+
+***
+
+Dota 2 is a popular multiplayer online battle arena (MOBA) game
+
+2 teams of 5 heroes playing for the Radiants (green) and the Dires (red)
+
+Objective to access enemies base and destroy their Acient structure
+
+Players control heroes to fight enemy heroes, towers and AI-controlled creep
+
+
+
+3. How does a Dota 2 match play out?
+========================================================
+
+![](Dota_2_minimap.jpg)
+
+***
+
+At the start of a match the barracks for each side automatically produce AI-controlled units called 'Creep'
+
+Heroes escort the packs of Creep along lanes towards enemy towers
+
+Towers do lots of damage to Heroes so they must wait until friendly Creep enguage the towers to be able to take them down
+
+Removing enemy towers allows for better access to enemy bases and their Ancient structure
+
+
+4. The Dataset
+========================================================
+
+A dataset with data on 50,000 matches was published to Kaggle by Devin, which can be found here:
+
+https://www.kaggle.com/devinanzelmo/dota-2-matches
+
+Here several csv files can be found covering a wide range of data on all players in each match leading to 500,000 observations
+
+Two key files were identified:
+- match.csv
+- players.csv
+
+One support file was identified:
+- hero_names.csv
+
+
+5. Match.csv 
+========================================================
+
+```{r Match Overview, echo=FALSE}
+# make a data frame of all variables in 'match' combined with their descriptions
+
+Variable <- as.character(c("match_id", "start_time", "duration", "tower_status_radiant", "tower_status_dire", "barracks_status_dire", "barracks_status_radiant", "first_blood_time", "game_mode", "radiant_win", "negative_votes", "positive_votes", "cluster"))
+
+Description <- as.character(c("unique interger to identify matches accross all files", "match start time in seconds since 00:00, 01/01/1970, UTC", "length of match in seconds", "total health of all Radiant towers at match end", "total health of all Dire towers at match end", "total health of all Dire barracks at match end", "total health of all Radiant barracks at match end", "timestamp in seconds of when first player is killed from match start", "an integer indicating which game mode the match is playing", "a factor indicating if the radiant team won or lost the match", "number of negative votes a match recieved", "number of positive votes a match recieved", "integer indicating which region of the world the match was played"))
+
+Match_Overview <- dplyr::data_frame(Variable, Description)
+kable(Match_Overview, format = "markdown")
+``` 
+
+
+6. Duration Variable
+========================================================
+
+![](Duration_raw.png)
+Histogram plot of duration variable
+
+***
+
+![](Duration_filter.png)
+Histogram plot of duration variable between 15 and 75 minutes
+
+
+7. Players.csv
+========================================================
+
+```{r Players Overview, echo=FALSE}
+# make a data frame of all variables in 'players' combined with their descriptions
+
+Variables <- as.character(c("match_id", "account_id", "hero_id", "player_slot", "gold", "gold_spent", "gold_per_min", "xp_per_min", "kills", "deaths", "assists", "denies", "last_hits", "stuns", "hero_damage", "tower_damage", "item_0 to _5", "level", "leaver_status", "xp_hero", "xp_creep", "xp_roshan", "xp_other", "gold_other", "gold_death", "gold_buyback", "gold_abandon", "gold_sell", "gold_destroying_structure", "gold_killing_heros", "gold_killing_creep", "gold_killing_roshan", "gold_killing_couriers"))
+
+Descriptions <- as.character(c("unique interger to identify matches accross all files", "unique interger to identify players. 0 (zero) represent annonomous players", "unique interger to identify which hero was selected per player", "unique interger where 0-4 represent players on Radiant side and 128-132 the Dire side", "amount of gold player has at match end", "amount of gold player spent during the match", "amount of gold per minute a player accumulated on average during the match", "amount of experience points per minute a player accumulated on average during the match", "total kills a player scored per match", "number of times a player died per match", "number of assists a player gained per match", "number of denies a player performed per match", "number of last hits a player landed on creep per match", "cumulative amount of time a player stunned an enemy player", "cumulative amount of damage a player caused to enemy heroes", "cumulative amount of damage a player caused to enemy towers", "integers referring to items a player equiped during the match", "the hero character level a player obtained by match end", "integer indicating if a player stayed until match end or left early", "experience points gained from killing heros", "experience points gained from killing creep", "experience points gained from killing Roshan, neutral creep boss in jungle", "experience points gained from other sources", "gold gained from other non-conventional sources", "cumulative amount of gold lost due to death", "gold spent buying back lost items", "gold abandoned by a player", "gold gained from selling items", "gold gained from destroying structures e.g. tower, barracks, ancient", "gold gained from killing enemy heroes", "gold gained from killing creeps", "gold gained from killing Roshan, high level neutral creep boss in jungle", "gold gained from killing enemy courriers"))
+
+Players_Overview <- dplyr::data_frame(Variables, Descriptions)
+kable(Players_Overview, format = "markdown")
+```
+
+
+
+8. 
+========================================================
+
+After analysis of these two key files they were combined into one data frame called 'CombinedDF'
+
+
+9. 
+========================================================
+
+
+
+
+10. 
+========================================================
+
+

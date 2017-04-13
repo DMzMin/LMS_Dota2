@@ -429,14 +429,45 @@ Both 'MatchDF' and 'PlayersDF' data frames have been cleaned up and contain only
 # Combine PlayersDF and MatchDF into CombinedDF
 CombinedDF <- left_join(MatchDF, PlayersDF,by = "match_id")
 
-# add column WL to CombinedDF to indicate Win/Loss for each individual player
+# add column 'WL' to CombinedDF to indicate Win/Loss for each individual player
 CombinedDF$WL <- ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "R", "Win", 
                   ifelse(CombinedDF$radiant_win == "True" & CombinedDF$team == "D", "Loss", 
                   ifelse(CombinedDF$radiant_win == "False" & CombinedDF$team == "R", "Loss", "Win")))
 
+# add column 'Win' to CombinedDF to indicate win/loss by 1 and 0
+CombinedDF$Win <- ifelse(CombinedDF$WL == "Win", as.integer(1), as.integer(0))
+
+# rename column 'Hero_Names' to 'Name'
+CombinedDF <- CombinedDF %>% rename(Name=Hero_Names)
 
 glimpse(CombinedDF)
 ```
 
-The 'CombinedDF' data frame has 420510 observations across 51 variables and represents the collection of all data that will be discussed in this report. This will be the source for all studies going forward in this project.
+The 'CombinedDF' data frame has 420,510 observations across 52 variables and represents the collection of all data that will be discussed in this report. This will be the source for all studies going forward in this project.
 
+```{r create CombinedDF.csv file}
+# create 'CombinedDF.csv' file for further use in future Rmd documents.
+write.csv(CombinedDF, "CombinedDF.csv")
+
+```
+
+```{r, Cleanup workspace, include=FALSE}
+rm(GMTally)
+rm(M)
+rm(match)
+rm(Match_Overview)
+rm(MatchDF)
+rm(MatchNewDur)
+rm(MatchNewST)
+rm(P)
+rm(players)
+rm(Players_Overview)
+rm(PlayersDF)
+rm(PlayersShort)
+rm(PlayersTeam)
+rm(Tally0)
+rm(TallyLS)
+rm(HID_Bar)
+rm(HIDrm)
+rm(LSrm)
+```

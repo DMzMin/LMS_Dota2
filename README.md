@@ -3,12 +3,23 @@ Capstone project using Dota 2 dataset by LMS
 
 This capstone project studies a Dota 2 dataset posted to Kaggle by user Devin which can be found here: https://www.kaggle.com/devinanzelmo/dota-2-matches
 
-Please see 'Dota2_Capstone_by_LMS.Rmd' document for project report.  
+Please see 'Capstone_Dota2_Summary.Rmd' document for project report.  
 
-Please see 'xxx' for slides (to be made).
+Key documents for this report are:
+* Dota2_Introduction.Rmd
+* Dota2_Data_Wrangling.Rmd
+* Dota2_Analysis_Summary.Rmd
 
-------------------------------------------
-!!This readme file STILL NEEDS MORE WORK!!
-------------------------------------------
+Important support documents with raw working are:
+* Dota2_Analysis_and_Results.Rmd
+* Dota2_Detailed_Analysis.Rmd
 
+Cleaned dataset is 'CombinedDF.csv'
+
+Introduction document: http://rpubs.com/LMS/Dota2_Introduction
 Wrangle document: http://rpubs.com/LMS/Dota2_Wrangle
+Analysis document: http://rpubs.com/LMS/Dota2_Analysis_Summary
+Final report document: http://rpubs.com/LMS/Capstone_Dota2_Report
+
+
+as of 13/04/2017 a final slide presentation is being worked on and will be included in this depository.

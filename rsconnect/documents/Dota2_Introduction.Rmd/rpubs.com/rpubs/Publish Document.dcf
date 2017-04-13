@@ -1,0 +1,8 @@
+name: Publish Document
+title:
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/252265/446883d4cb0e4f72903f31ebba5684d1
+bundleId: https://api.rpubs.com/api/v1/document/252265/446883d4cb0e4f72903f31ebba5684d1
+url: http://rpubs.com/LMS/252265
+when: 1488880657.71378

@@ -13,6 +13,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(reshape2)
+# library(caTools)
 
 # detach(package:plyr, unload = TRUE)
 
@@ -31,9 +32,158 @@ B) What strategy should I persue with these heroes?
 To answer Question A we will need to study ...
 
 
-Lets look at the different classes and roles each hero takes on againsts the heroes popularity (how often a hero is selected by players) and how well they perform for example win:loss and kill:death ratios.
+Lets look at the different classes and roles each hero takes on againsts the heroes popularity (how often a hero is selected by players) and how well they perform. Lets gather the mean for all hero stats when they win and when they lose. This will provide two rows per per hero.
 
 ### **Hero_Names Details and Figures **
+
+```{r Hero_Bimod }
+# collect averages for each hero split out by when they win and lose
+Hero_Bimod <- CombinedDF %>% 
+  select(Hero_Names, WL, level, kills, deaths, assists, denies, last_hits, hero_damage, gold, gold_per_min, xp_per_min, duration) %>% 
+  rename(Name=Hero_Names) %>%
+  mutate(KDdiff = Hero_KDR$kills - Hero_KDR$deaths) %>%
+  group_by(Name, WL) %>%
+  summarise(total_kills = sum(kills), 
+            total_deaths = sum(deaths), 
+            avg_kills = round(mean(kills), digits = 0), 
+            avg_deaths = round(mean(deaths), digits = 0), 
+            avg_levels = round(mean(level), digits = 0), 
+            avg_assists = round(mean(assists), digits = 0), 
+            avg_denies = round(mean(denies), digits = 0), 
+            avg_las_hits = round(mean(last_hits), digits = 0),
+            avg_hero_damage = round(mean(hero_damage), digits = 0), 
+            avg_gold = round(mean(gold), digits = 0),
+            avg_gold_per_min = round(mean(gold_per_min), digits = 0),
+            avg_xp_per_min = round(mean(xp_per_min), digits = 0), 
+            avg_KDdiff = round(mean(KDdiff), digits = 2),
+            avg_duration = round(mean(duration), digits = 0) ) %>%
+  mutate(KDR = round(total_kills/total_deaths, digits = 2))
+
+# lets take a look at these averages when split out as win and loss
+ggplot(data = melt(Hero_Bimod), aes(x = value, y = WL)) + 
+  geom_point() + 
+  facet_wrap(~variable, scales = "free_x") + 
+  theme(axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+
+Lets examine gold plotted against duration to see if a linear relationship can be defined. It is expected that as matches last longer, players should have more gold at the end of the match.
+
+```{r gold v duration plot}
+# xy plot of duration vs gold
+ggplot(CombinedDF, aes(x = duration, y = gold, col = WL)) +
+  geom_point(size = 0.2)
+
+```
+
+This plot shows the correlation between gold and duration is not clear. Lets look at the linear model of these two, and see if other variables can help the predictor.
+
+```{r}
+# examining linear model between duration and gold
+model1 <- lm(gold ~ duration, data=CombinedDF)
+summary(model1)
+model1
+
+# we can reject that there is no correlation (reject null hypothesis) but this is not a great model as indicated by the very low r^2 value. Lets see if the model improves
+
+# here we see the model has very low P values which means we can reject the null hypothesis that these two variables, have no correlation, but the R^2 value of 0.02127 is very low indicating vey high variance.
+
+# lets add WL as a predictor
+model2 <- lm(gold ~ duration + WL, data=CombinedDF)
+summary(model2)
+
+# This improves R^2 significantly but it is still quite low at 0.2873. 
+
+# Lets add Hero_Names as a predictor
+model3 <- lm(gold ~ duration + WL + Hero_Names, data=CombinedDF)
+summary(model3)
+
+# lets add kills as a predictor but remove Hero_Names
+model4 <- lm(gold ~ duration + WL + kills, data=CombinedDF)
+summary(model4)
+
+# lets add gold_death as a predictor
+model5 <- lm(gold ~ duration + WL + kills + gold_death, data=CombinedDF)
+summary(model5)
+
+# r^2 is regression variavnce / total variance
+```
+
+```{r}
+SSE1 <- sum(model1$residuals^2) # calculate sum of squared errors for model1
+SSE1
+```
+
+```{r gold_death v duration plot}
+# xy plot of duration vs gold_death
+ggplot(CombinedDF, aes(x = duration, y = gold_death, col = WL)) +
+  geom_point(size = 0.2)
+
+GD_lm <- lm(gold_death ~ duration, data=CombinedDF)
+summary(GD_lm)
+
+```
+
+
+```{r}
+
+# interesting comparision plot to see how these variables spread out when distilled by WL
+ggplot(data = melt(CombinedDF), aes(x = value, y = WL)) + 
+  geom_point() + 
+  facet_wrap(~variable, scales = "free_x") + 
+  theme(axis.text.x = element_text(angle = 20, hjust = 1)) 
+```
+
+CORRELATION MATRIX
+```{r Correlation Matrix}
+
+
+```
+
+
+```{r level v duration plot}
+# xy plot of gold vs duration
+ggplot(CombinedDF, aes(x = duration, y = level, fill = WL)) +
+  geom_point(size = 1)
+
+```
+
+```{r}
+# examining linear model between level and duration
+model1 <- lm(level ~ duration, data=CombinedDF)
+summary(model1)
+
+SSE1 <- sum(model1$residuals^2) # calculate sum of squared errors for model1
+SSE1
+```
+
+```{r}
+#            %>%
+  mutate(KDR = round(total_kills/total_deaths, digits = 2)) 
+
+rm(H_Bimod)
+# %>%
+#  select(Name, WL, KDR) %>%
+#  spread(key=WL, value=KDR) %>%
+#  rename(KDR_Loss=Loss, KDR_Win=Win) %>%
+#  arrange(desc(KDR_Win), desc(KDR_Loss))
+
+H <- Hero_KDR %>%
+  group_by(Name, WL) %>%
+  summarise(total_kills = sum(kills), total_deaths = sum(deaths)) %>%
+  mutate(KDR = round(total_kills/total_deaths, digits = 2)) %>%
+  select(Name, WL, KDR) %>%
+  arrange(desc(KDR))
+
+# ggplot hero KDRs
+ggplot(H, aes(x = reorder(Name, -KDR), y = KDR, width = 0.5, fill = WL)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme(axis.text.x = element_text(angle = 70, hjust = 1, size = 5)) +
+  xlab("Heroes") +
+  ylab("Hero KDR")
+
+
+```
 
 #### *Hero_Bar*
 Hero_Bar is a file containig key data with respect to each Hero Name designed to produce an array of bar charts to help explain the data. These variables are:
@@ -43,11 +193,11 @@ Hero_Names (rename to "Name"), Class, Role_Count, kills, deaths, assists, denies
 ```{r Hero_Bar }
 # bar plot for top 40 most popular hero names 
 Hero_Bar <- CombinedDF %>%
-  group_by(Hero_Names, Class, Role_Count) %>%
+  group_by(Hero_Names, Class, Role_Count, All_Roles) %>%
   tally(sort = TRUE) %>%
   rename(Name=Hero_Names, HN_Count=n)
 
-# heroes win:loss ratio (WLR)
+# Heroes win:loss ratio (WLR)
 
 Hero_WLR <- CombinedDF %>%
   group_by(Hero_Names, WL) %>%
@@ -57,7 +207,9 @@ Hero_WLR <- CombinedDF %>%
   mutate(WLR = round(Win/Loss, digits = 2))
 
 Hero_Bar <- left_join(Hero_Bar, Hero_WLR, by = "Name")
+```
 
+```{r Bar plot of Hero Name Count colour filled by WLR}
 # ggplot to show how hero selection stands up to their match Win:Loss ratio
 ggplot(head(Hero_Bar, n = 40), aes(x = reorder(Name, -HN_Count), y = HN_Count, width = 0.8, fill = WLR)) +
   scale_fill_gradient2(low = "dark blue", high = "red", mid = "white", midpoint = 1) +
@@ -70,13 +222,13 @@ ggplot(head(Hero_Bar, n = 40), aes(x = reorder(Name, -HN_Count), y = HN_Count, w
 ```
 This bar graph shows the popularity of the top 40 heroes by selection coloured by their win:loss ratio (WLR), where white represents 1:1 win:loss, red represents better than 1:1 win:loss and blue represents worse than 1:1 win:loss. The integer numbers in each bar represent the number of roles each hero is associated with, where higher numbers indicate a hero who is more versitile and able to carry out a wider range of functions. Please note the total number of all heroes counted is `r sum(Hero_Bar$HN_Count)`.
 
-Let's see how these stack up when ordered by WLR and coloured by HN_Count.
+Let's see how these stack up when ordered by HN_Count as a percent and coloured by WLR.
 
 ```{r}
 Hero_Bar$HN_Pct <- round((Hero_Bar$HN_Count/sum(Hero_Bar$HN_Count)*100), digits = 2)
 
-ggplot(head(Hero_Bar, n = 40), aes(x = reorder(Name, -WLR), y = WLR, width = 0.8, fill = HN_Pct)) +
-  scale_fill_gradient2(low = "dark blue", high = "red") +
+ggplot(head(Hero_Bar, n = 40), aes(x = reorder(Name, -HN_Count), y = HN_Pct, width = 0.8, fill = WLR)) +
+  scale_fill_gradient2(low = "dark blue", high = "red", mid = "white", midpoint = 1) +
   geom_bar(stat = "identity") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 8)) +
   xlab("Top 40 Heroes") +
@@ -84,11 +236,12 @@ ggplot(head(Hero_Bar, n = 40), aes(x = reorder(Name, -WLR), y = WLR, width = 0.8
 
 ```
 
-Let's take a look at heroes kill:death ratios (KDR) when they win and when they lose matches.
+Let's take a look at each heroes kill:death ratios (KDR) when they win and when they lose matches.
 
 ```{r}
 # heroes kill:death ratio (KDR)
-Hero_KDR <- CombinedDF %>% select(Hero_Names, account_id, match_id, WL, level, kills, deaths) %>% 
+Hero_KDR <- CombinedDF %>% 
+  select(Hero_Names, account_id, match_id, WL, level, kills, deaths) %>% 
   rename(Name=Hero_Names, Player=account_id) %>%
   mutate(KDR = round(Hero_KDR$kills / Hero_KDR$deaths, digits = 2)) %>%
   mutate(KDdiff = Hero_KDR$kills - Hero_KDR$deaths)
@@ -113,7 +266,7 @@ H <- Hero_KDR %>%
 # ggplot hero KDRs
 ggplot(H, aes(x = reorder(Name, -KDR), y = KDR, width = 0.5, fill = WL)) +
   geom_bar(stat = "identity", position = "dodge") +
-  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 8)) +
+  theme(axis.text.x = element_text(angle = 70, hjust = 1, size = 5)) +
   xlab("Heroes") +
   ylab("Hero KDR")
 ```
@@ -221,15 +374,15 @@ Here we see two interesting heroes immediately, Windranger and Shadow Fiend who 
 
 ```{r}
 # bar plot for all hero names
-ggplot(Hero_Bar, aes(x = reorder(Hero_Names, -n), y = n, width = 0.75, fill = Class, as.factor = TRUE)) +
+ggplot(Hero_Bar, aes(x = reorder(Name, -HN_Count), y = HN_Count, width = 0.75, fill = Class, as.factor = TRUE)) +
   geom_bar(stat = "identity", aes()) +
   theme(axis.text.x = element_text(angle = 90, hjust = 0, size = 5))
 ```
 
 
-```{r}
+```{r Investigating CLass}
 # total Class tally and plot of top 40 most used Heroes
-Class_Ct <- head(Hero_Bar, n = 40) %>%
+Class_Ct <- Hero_Bar %>%
   group_by(Class) %>%
   tally(sort = TRUE)
 
@@ -245,10 +398,18 @@ Class_Ct
 
 ```{r}
 
-ggplot(Hero_WLR,aes(x = Hero_Names, y = WLR, as.factor = TRUE)) +
+Cols <- c("1.45" = "red", "1.01" = "red", "1" = "black", "0.99" = "steel blue", "0.68" = "steel blue")
+
+ggplot(Hero_WLR,aes(x = reorder(Name, -WLR), y = Win, fill = WLR, as.factor = TRUE)) +
+  scale_fill_manual(values = Cols, breaks = c("1.45", "1.01", "1", "0.99", "0.68")) +
          geom_bar(stat = "identity") +
   theme(axis.text.x = element_text(angle = 90, hjust = 0, size = 5))
 
+
+
+  scale_fill_gradient2(low = "steel blue", high = "red", mid = "white", midpoint = 1) +
+
+min(Hero_WLR$WLR)
 ```
 
 

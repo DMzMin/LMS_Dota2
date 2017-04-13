@@ -1,0 +1,8 @@
+name: Publish Document
+title:
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/267600/0bcd3028c06b48c28d5bb8915fbc1e64
+bundleId: https://api.rpubs.com/api/v1/document/267600/0bcd3028c06b48c28d5bb8915fbc1e64
+url: http://rpubs.com/LMS/267600
+when: 1492099194.72881

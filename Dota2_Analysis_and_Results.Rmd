@@ -5,12 +5,15 @@ date: "22/03/2017"
 output: html_document
 ---
 
+write.csv(CombinedDF,  file = "CombinedDF.csv")
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(CaTools)
 
 # This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Analysis_and_Results
 ```
@@ -18,16 +21,21 @@ library(ggplot2)
 This document takes the previous work done in 'Dota2_Data_Wrangling.Rmd' which produced the data frame 'CombinedDF'. Lets take a quick look as a reminder of the variables collected.
 
 ```{r quick look at CombinedDF}
+# Read in 'CombinedDF.csv' file
+CombinedDF <- read.csv(file = "CombinedDF.csv")
+
+# Glimpse at 'CombinedDF'
 glimpse(CombinedDF)
 ```
 
 ## Gold Accumulation - Linear Regression Models
 In this section we will address the question:
 
-"How do I finish with a good amount of gold as a proxy to being 'sucessful' in the game?"
+"How do I finish with a good amount of gold as a proxy to being 'successful' in the game?"
 
-let's fist look at how gold compares to match duration.
+let's first look at how gold compares to match duration.
 ```{r Duration vs Gold XY plot}
+# XY plot of duration against gold
 ggplot(CombinedDF, aes(x = duration, y = gold, col = WL)) +
   geom_point(size = 0.2)
 ```
@@ -37,17 +45,15 @@ Here we see quite a broad range of gold values for different durations. Lets loo
 ```{r Hero populatiry and win percentage}
 # bar plot for most popular hero names 
 Hero_Bar <- CombinedDF %>%
-  group_by(Hero_Names, Class, Role_Count, All_Roles) %>%
+  group_by(Name, Class, Role_Count, All_Roles) %>%
   tally(sort = TRUE) %>%
-  rename(Name=Hero_Names, HN_Count=n)
+  rename(HN_Count=n)
 
 # Heroes win percentage (HWin_Pct)
-
 HWin_Pct <- CombinedDF %>%
-  group_by(Hero_Names, WL) %>%
+  group_by(Name, WL) %>%
   tally() %>%
   spread(key = WL, value = n) %>%
-  rename(Name=Hero_Names) %>%
   mutate(Hero_Win_Pct = round(Win/(Win + Loss), digits = 2))
 
 Hero_Bar <- left_join(Hero_Bar, HWin_Pct, by = "Name")
@@ -62,10 +68,10 @@ ggplot(Hero_Bar, aes(x = reorder(Name, -HN_Count), y = HN_Count, width = 0.8, fi
 
 ```
 
-This plot show a significant level of popularity for the top two most popular; Windranger and Shadow Fiend. It is also noted that Windranger loses more than she wins (blue shading indicates a <0.5 value for 'Hero_Win_Pct') and Shadow Fiend wins more than he loses (red shading indication >0.5 value for 'Hero_Win_Pct'), albeit these are both relatively close to the white 0.5 value for 'Hero_Win_Pct. Lets also call for the heroes with the highest and lowest 'Hero_Win_Pct'.
+This plot show a significant level of popularity over other heroes for the top two most popular; Windranger and Shadow Fiend. It is also noted that Windranger loses more than she wins (blue shading indicates a <0.5 value for 'Hero_Win_Pct') and Shadow Fiend wins more than he loses (red shading indication >0.5 value for 'Hero_Win_Pct'), albeit these are both relatively close to the white 0.5 value for 'Hero_Win_Pct'. Lets also call for the hero with the highest 'Hero_Win_Pct', a variable made by 'win/(win+loss)'.
 
-```{r Heroes with highest and lowest Hero_Win_Pct}
-# ggplot of heroes ordered by popularity and color by their win percentage
+```{r Heroes with highest Hero_Win_Pct}
+# ggplot of heroes ordered by win percentage and color by their popularity
 ggplot(Hero_Bar, aes(x = reorder(Name, -Hero_Win_Pct), y = Hero_Win_Pct, width = 0.8, fill = HN_Count)) +
   scale_fill_gradient2(low = "dark blue", high = "red", mid = "white", midpoint = 5000) +
   geom_bar(stat = "identity") +
@@ -75,16 +81,16 @@ ggplot(Hero_Bar, aes(x = reorder(Name, -Hero_Win_Pct), y = Hero_Win_Pct, width =
 
 ```
 
-Here we see Omniknight has the highest win percentage of `r max(Hero_Bar$Hero_Win_Pct)` and Shadow Demon has the lowest win percentage of `r min(Hero_Bar$Hero_Win_Pct)`. We will examine these two heroes as well to get an idea of how this might vary the model.
+Here we see Omniknight has the highest win percentage of `r max(Hero_Bar$Hero_Win_Pct)` . We will also examine this hero to get an indication of how this might vary the model.
 
 ### Windranger Linear Model
 Lets collect all data on Windranger and look at the duration vs gold XY plot.
 
 ```{r Windranger duration vs gold XY plot}
 # Selecting all Windranger data
-Windranger <- CombinedDF[which(CombinedDF$Hero_Names=="Windranger"),]
+Windranger <- CombinedDF[which(CombinedDF$Name=="Windranger"),]
 
-# Windranger duration vs gold XY plot
+# Windranger 'duration' vs 'gold' XY plot
 ggplot(Windranger, aes(x = duration, y = gold, col = WL)) +
   geom_point(size = 0.2)
 ```
@@ -92,63 +98,154 @@ ggplot(Windranger, aes(x = duration, y = gold, col = WL)) +
 This plot shows Windranger's match duration vs gold, coloured by Win/Loss. The Windranger data frame contains 17597 observations. Let's look at gold and duration's linear relationship for Windranger.
 
 ```{r Windranger linear model 1 - gold predicted by duration}
+# first linear model where 'duration' is used to predict 'gold'
 WR_LM1 <- lm(gold ~ duration, data=Windranger)
 summary(WR_LM1)
 
 ```
 
-Model 'WR_LM1' shows both the intercept and duration regression coefficient have very low P values, indicating that we can definitely reject the null hypothesis that there is no correlation between these variables. Gold and duration do correlate slightly positively, however the very low R-Squared value of 0.02678 tells us that the model is not very good. Lets see if we can improve this model by including additional variables. Lets add the variable 'deaths' to the model since when a hero dies in a match they lose a certain amount of gold.
+Model 'WR_LM1' shows a low and positive regression cooefficient with both the intercept and duration having very low P values, indicating that we can definitely reject the null hypothesis that there is no correlation between these variables. Gold and duration do correlate slightly positively, however the very low R-Squared value of 0.02678 tells us that the model is not very good. This tells us that generally over time you are likely to have more gold in longer matches, but there is quite a lot of variability on how much gold for a given duration. Lets see if we can improve this model by including additional variables. Lets add the variable 'gold_per_min' to the model as this is directly linked to the gold variable and duration. Let's also include the 'Win' variable to see how this affects the model.
 
-```{r linear model 2 - Gold predicted by duration and deaths}
-WR_LM2 <- lm(gold ~ duration + deaths, data=Windranger)
+```{r linear model 2 - Gold predicted by duration combined with gold_per_min}
+# second linear model where 'duration' combined with 'gold_per_min' is used to predict 'gold'
+WR_LM2 <- lm(gold ~ duration * gold_per_min + Win, data=Windranger)
 summary(WR_LM2)
 
 ```
 
-Model 'WR_LM2' displays a very low P value for all concerned variables indicating that all these variables correlate, with deaths showing a strong negative correlation to gold. We also see a significant improvement in the R-squared value to 0.1663 indicating that adding deaths has improved the model. It is noted that in Dota 2 the amount of gold you lose upon death is tied to the hero's current level. Let's multiple level with deaths and see if this improves the model further.
+Model 'WR_LM2' displays a very small regression coefficient for 'duration*gold_per_min' of 0.003. However all variables have low P value indicating that there is a relationship with 'gold', as would be expected. The faster a hero collects gold and the longer they have to do this the more gold they are likely to finish with. Interestingly though we see that duration has changed from a positive correlation of about 0.5 to a negative correlation of less than -1. This seems to idicate now that with the addition of 'gold_per_min' and 'Win' the much longer matches may have an overall negative impact on the amount of gold a hero finishes. We see a significant improvement in the R-squared value to 0.3763 indicating that combining 'gold_per_min' and 'Win' with 'duration' has really improved the model. 
 
-```{r linear model 3 - Gold predicted by duration, deaths and level}
-WR_LM3 <- lm(gold ~ duration + deaths*level, data=Windranger)
+Let's see if we can improve on this model further by adding the 'gold_spent' variable as this will most definietly have a significant impact of gold in pocket at match end.
+
+```{r linear model 3 - Gold predicted by duration, gold_per_min and gold_spent}
+# third linear model where 'duration' combined with 'gold_per_min' plus 'gold_spent' is used to predict 'gold'
+WR_LM3 <- lm(gold ~ duration * gold_per_min + Win + gold_spent, data=Windranger)
 summary(WR_LM3)
 
 ```
 
-Model 'WR_LM3'  shows an improvement in R-squared to 0.2395 however we also see that deaths has a much higher probability of 0.199 that the null hypothesis for this variable is correct, that it does not hold a correlation in this model. This is due to the number of deaths per match and the duration of matches are intrinsically linked.
+Model 'WR_LM3'  shows a very large improvement in R-squared to 0.6534 so that adding 'gold_spent' has improved the model significantly. Interestly the P value for the intercept has increased quite a bit, but still remains at a low value of 0.0239. 
 
-```{r duration vs level xy plot}
-ggplot(Windranger, aes(x = duration, y = level, col = WL)) +
-  geom_point(size = 0.2)
+When a hero In Dota 2 dies the amount of gold is directly tied to their level. Lets add deaths and combine it with xp_per_min. Here we use xp_per_min because it is a continious variable that represents well the discrete variable 'level'.
 
-LvlDur_lm <- lm(level ~ duration, data=Windranger)
-summary(LvlDur_lm)
-
-plot(LvlDur_lm)
-```
-
-Let's look at another model, adding kills since killing enemy heroes is a supposed to be a significant source of gold.
-
-```{r linear model - Gold predicted by duration, kills, deaths and level}
-WR_LM4 <- lm(gold ~ duration + kills + deaths*level, data=Windranger)
+```{r linear model - Gold predicted by duration, gold_per_min, gold_spent and deaths combined with xp_per_min}
+# fourth linear model where 'duration' combined with 'gold_per_min', 'gold_spent' and 'deaths' combined with 'xp_per_min' is used to predict 'gold'
+WR_LM4 <- lm(gold ~ duration * gold_per_min + Win + gold_spent + deaths * xp_per_min, data=Windranger)
 summary(WR_LM4)
 
 ```
 
-Model 'WR_LM4' shows very little improvement in R-squared, which may indicate a drop in quality of the model since adding variables to linear models naturally raises the R-squared value anyway. Therefore we can conclude that adding kills to this model has decreased the model's ability to predict the amount of gold expected to finish with. Interestingly though adding kills here has returned duration's P value to the very low value of 2^-16, bringing back its likelyhood of correlating to the gold variable. Lets now include the gold_spent variable.
+Model 'WR_LM4' shows further improvement in R-squared to 0.7221, which indicates a further increase in quality of the model.
 
-```{r linear model - Gold predicted by duration, kills, deaths, level and gold_spent}
-WR_LM5 <- lm(gold ~ duration + kills + deaths * level + gold_spent, data=Windranger)
+We will include 'hero_damage' and 'tower_damage' into the model here since killing heroes and towers are significant sources of gold that players are encouraged to chase.
+
+
+```{r linear model - Gold predicted by duration, gold_per_min, gold_spent, deaths combined with xp_per_min, hero_damage and tower_damage}
+# fifth linear model where 'duration' combined with 'gold_per_min', 'gold_spent', 'deaths' combined with 'xp_per_min', 'hero_damage' and ' tower_damage' is used to predict 'gold'
+WR_LM5 <- lm(gold ~ duration * gold_per_min + Win + gold_spent + deaths * xp_per_min + hero_damage + tower_damage, data=Windranger)
 summary(WR_LM5)
 ```
 
-Here we see model 'LM5' shows a 5% improvement in R-squared to 0.27 and all variable with a very low P value. This is possibly the best model for predicting the amount of gold a hero will finish with. Lets take a look at the plots for model 'LM5'.
+Here we see model 'WR_LM5' a little improvement in R-squared to 0.7233. This model has the best R-squared value yet and is possibly the closest we will get to modelling the amount of gold a hero will likely finish a match with. We also note that all variables used in the model are very low apart from 'deaths' when modelled on its own. When included with 'xp_per_min' it remains significant.
 
-```{r plots of model LM5}
-plot(LM5, which = c(1, 4))
+Lets check this model with other heroes selected for this section.
+
+### Linear modelling Shadow Fiend
+```{r linear model - Shadow Fiend}
+# Selecting all Shadow Fiend data
+ShadowFiend <- CombinedDF[which(CombinedDF$Name=="Shadow Fiend"),]
+
+# linear model of Shadow Fiend where 'duration' combined with 'gold_per_min', 'gold_spent', 'deaths' combined with 'xp_per_min', 'hero_damage' and ' tower_damage' is used to predict 'gold'
+WR_LM5 <- lm(gold ~ duration * gold_per_min + gold_spent + deaths * xp_per_min + hero_damage + tower_damage, data=ShadowFiend)
+summary(WR_LM5)
 ```
 
+
+### Linear modelling Omniknight
+```{r linear model - Omniknight}
+# Selecting all Omniknight data
+Omniknight <- CombinedDF[which(CombinedDF$Hero_Names=="Shadow Fiend"),]
+
+# linear model of Omniknight where 'duration' combined with 'gold_per_min', 'gold_spent', 'deaths' combined with 'xp_per_min', 'hero_damage' and ' tower_damage' is used to predict 'gold'
+WR_LM5 <- lm(gold ~ duration * gold_per_min + gold_spent + deaths * xp_per_min + hero_damage + tower_damage, data=Omniknight)
+summary(WR_LM5)
+```
+
+The modelling of Shadow Fiend and Omniknight indicate that they have broadly similar responses to that of the Windranger dataset.
+
+
 #### Gold Accumulation Conclusions
-All models generated above showed that there was reason to believe that duration, kills, deaths, level and gold_spent all correlate with the amount of gold a hero will finish with, despite these models having low R-squared values. The best model 'LM5' achieved an R-squared value of 0.274 which indicates that variance from the model is high. However we can still conclude that to finish the game with high amounts of gold players should try to kill enemy heroes while avoiding death themselves, attain high levels and spend gold wisely at the shop.
+All models generated above showed that there was reason to believe that duration, gold_per_min, gold_spent, deaths, xp_per_min, hero_damage and tower_damage all correlate with the amount of gold a hero will finish with based upon the P-values for each variable. The best model 'WR_LM5' achieved an R-squared value of 0.6947 which indicates that variance from the model is fairly good. We can conclude that to finish the game with high amounts of gold players should try to maximise their rates of aqcuiring gold and xp, avoid deaths, takedown enemy players and towers and spend gold wisely at the shop.
 
 ## Best ways to play - Logistic Regression Models
 
-For this section we will look at a selection of heroes based upon how often they are selected for each match. The top two heroes most selected are 'Windranger' and 'Shadow Fiend'.
+Let's take a look at logistic regression modelling for Windranger to predict the wins and losses Windranger has and see if key variables can be identified.
+
+```{r Windranger Logistic Regression Modelling}
+# set the seed point
+set.seed(1234)
+
+# Split the Windranger data set into Training and Testing sets
+table(Windranger$Win)
+SplitWR <- sample.split(Windranger, SplitRatio = 0.5)
+
+TrainWR <- subset(Windranger, SplitWR == TRUE)
+TestWR <- subset(Windranger, SplitWR == FALSE)
+
+# build logistic regression model for Windranger using duration, gold_spent, gold_per_min, xp_per_min, kills, deaths, assists, hero_damage and unit_order_total
+Windranger.LogM1 <- glm(Win ~ duration + gold_spent + gold_per_min + xp_per_min + kills + deaths + assists + hero_damage + unit_order_total, data = TrainWR, family = binomial)
+summary(Windranger.LogM1)
+
+```
+
+
+
+
+
+```{r}
+# build logistic regression model for Windranger using gold_spent, gold_per_min, xp_per_min, kills, deaths, assists, hero_damage and unit_order_total
+Windranger.LogM2 <- glm(Win ~ gold_spent + gold_per_min + xp_per_min + kills + deaths + assists + hero_damage + unit_order_total, data = TrainWR, family = binomial)
+summary(Windranger.LogM2)
+```
+
+
+```{r}
+# build logistic regression model for Windranger using duration, gold_spent, gold_per_min, xp_per_min, deaths, assists, hero_damage and unit_order_total
+Windranger.LogM3 <- glm(Win ~ duration + gold_spent + gold_per_min + xp_per_min + deaths + assists + hero_damage + unit_order_total, data = TrainWR, family = binomial)
+summary(Windranger.LogM3)
+```
+
+
+```{r}
+# build logistic regression model for Windranger using duration, gold_spent * gold_per_min, xp_per_min * kills, deaths, assists, hero_damage and unit_order_total
+Windranger.LogM4 <- glm(Win ~ duration + gold_spent * gold_per_min + xp_per_min * kills + deaths + assists + hero_damage + unit_order_total, data = TrainWR, family = binomial)
+summary(Windranger.LogM4)
+
+```
+
+
+```{r}
+ggplot(Windranger, aes(x = duration, colour = WL)) +
+  geom_density()
+```
+
+```{r}
+ggplot(ShadowFiend, aes(x = duration, colour = WL)) +
+  geom_density()
+```
+
+```{r Windranger Logistic Regression Modelling}
+# set the seed point
+set.seed(1234)
+
+# Split the Windranger data set into Training and Testing sets
+SplitSF <- sample.split(ShadowFiend, SplitRatio = 0.5)
+
+TrainSF <- subset(ShadowFiend, SplitWR == TRUE)
+TestSF <- subset(ShadowFiend, SplitWR == FALSE)
+
+# build logistic regression model for Windranger using duration, gold_spent, gold_per_min, xp_per_min, deaths, assists, hero_damage and unit_order_total
+ShadowFiend.LogM <- glm(Win ~ duration+ gold_spent + gold_per_min + xp_per_min + deaths + assists + hero_damage + unit_order_total, data = TrainSF, family = binomial)
+summary(ShadowFiend.LogM)
+
+```
