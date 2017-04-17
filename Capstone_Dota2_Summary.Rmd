@@ -1,7 +1,7 @@
 ---
 title: "Capstone Dota2 Summary"
 author: "Louis MS"
-date: "13/04/2017"
+date: "17/04/2017"
 output: html_document
 ---
 
@@ -105,7 +105,7 @@ The following conclusions for acquiring gold are drawn from this model.
 
 
 ### **Modelling wins by inference with logistic regression**
-Several variables were analysed in logistic regression models to infer their importance to winning Dota 2 matches. The following logistic regression model was made.
+Several variables were analysed in logistic regression models to infer their importance to winning Dota 2 matches. The following logistic regression model was made and found to be most suitable.
 
 ```{r Windranger Logistic Regression Modelling, echo=FALSE}
 # Selecting all Windranger data
@@ -126,15 +126,36 @@ summary(Windranger.LogM)
 
 ```
 
-In this model it is seen that the variables with the largest impact on winning are the combat variables.  These are 'assists' which has a positive relationship to winning and 'deaths' which has a negative relationship to winning. 
+In this model it is seen that the variables with the largest regression coefficients to winning are the combat variables.  These are 'assists' which has a positive relationship to winning and 'deaths' which has a negative relationship to winning. 
 
-It was determined in previous models that getting kills in matches did not significantly contribute to winning, but we see here that getting assists does positively impact winning. This means that for players to win they should contribute to fighting and help out their teammates but should not worry about getting that final blow. They should not over-extend themselves just to get a kill as this can expose themselves to unnecessary risks of dying. Avoiding death is very important to being successful in Dota 2.
+It was determined in previous models that getting kills in matches did not significantly contribute to winning. Here is the model with 'kills' included.
 
-### **Future Work**
+```{r Windranger Logistic Regression Modelling INCLUDING kills, echo=FALSE}
+# Selecting all Windranger data
+Windranger <- CombinedDF[which(CombinedDF$Name=="Windranger"),]
 
-The data frame 'CombinedDF' has a very large mix of diverse variables that could be used in many ways to explore the game Dota 2. For instance this study has only looked at Windranger, the most selected hero within this dataset. Windranger is a hero that is attributed to five different roles representing a 'jack-of-all-trades' type character, with slightly more losses than wins recorded. Future analysis should look at other heroes such a Shadow Fiend, the second most selected hero in this dataset. Shadow Fiend is associated with only two roles which are all about combat and has slightly more wins than losses recorded.
+# set the seed point
+set.seed(1234)
 
-If we simply compare these two heroes' duration variable split by win loss we see the following.
+# Split the Windranger data set into Training and Testing sets
+SplitWR <- sample.split(Windranger, SplitRatio = 0.5)
+
+TrainWR <- subset(Windranger, SplitWR == TRUE)
+TestWR <- subset(Windranger, SplitWR == FALSE)
+
+# build logistic regression model for Windranger using duration, gold_spent, gold_per_min, xp_per_min, deaths, assists, hero_damage and unit_order_total
+Windranger.LogM_kills <- glm(Win ~ duration + gold_spent + gold_per_min + xp_per_min + deaths + assists + kills + hero_damage + unit_order_total, data = TrainWR, family = binomial)
+summary(Windranger.LogM_kills)
+
+```
+
+In this model it can be seen that kills has a probability of 10.2% of not being significant to winning. This was initially surprising since a core aspect of Dota 2 is combat. However in the original model (Windranger.LogM) it is seen that getting assists is significant and positively impacts winning. This means that for players to increase their chances of winning they should contribute to fighting and help out their teammates in fights with enemy heroes, but should not worry about getting that final killing blow. They should not over-extend themselves just to get a kill as this can expose themselves to unnecessary risks of dying. Avoiding death is very important to being successful in Dota 2, as dying is shown to have a negative impact to winning as shown in the model.
+
+The variable 'duration' shows a positive correlation to winning in the model. This indicates that the longer a match goes on for the more likely Windranger will win.  
+
+This led to further analysis in the form of comparing duration for Windranger against the second most popular hero, Shadow Fiend. Shadow Fiend is a good selection here for comparision since it is a hero that is more designed to focus on combat, where as Windranger can cover more roles and is more of a generalist.
+
+The following compares Windranger's and Shadow Fiend's duration density plot split out by win / loss.
 
 ```{r, Windranger duration density plot, out.width="400px",fig.align="center", echo=FALSE}
 # Selecting all Windranger data
@@ -158,15 +179,19 @@ ggplot(ShadowFiend, aes(x = duration, colour = WL)) +
 
 <center>This density plot show that Shadow Fiend wins more often in shorter matches.</center>
 
-These two plots quickly show how detailed and diverse this dataset really is and opens up possible avenues of thought for further exploration. For example it may be worth finding out which heroes fall into these two categories. This could influence team composition and strategy depending on those team compositions.
+These two plots show that Windranger wins more of the longer matches and Shadow fiend wins more of the shorter matches, indicating types of styles of how players should play these heroes based on duration alone. Heroes like Shadow Fiend should push for a quick win and Windranger should try to long-out matches and endure pushes against their side so they have more time to rank up and increase their chances of winning. This analysis shows that further work can be done to understand how team compositions should be put together.
 
-This leads into the diverse number of roles attributed to each hero. How do these play into winning and losing? One might imagine that a team consisting of only support heroes will struggle to win, as will teams with no support roles. How do different team compositions play out against each other? If one team is composed of only support heroes, then maybe a team without support heroes might be fine and win every time.
+### **Future Work**
 
-In this study the specific items that were bought throughout each match was excluded. However a detailed examination of this information might identify which items are more effective at improving a heroes chances of winning matches. It may also show that some items work better for different heroes.
+The data frame 'CombinedDF' has a very large mix of diverse variables that could be used in many ways to explore the game Dota 2. This study has only looked at the Windranger hero in depth, the most selected hero within this dataset. Further work should look at other heroes such as Shadow Fiend, as quite different hero with only two roles which are all about combat and has slightly more wins than losses recorded.
 
-For this study there were 33 separate columns dedicated to 'unit_order_' which were simply amalgamated into 'unit_order_total' for this study, however analysis of these individual variables may open interesting views on how to play, or how different players play. Unfortunately this dataset did not acquire very much information of individual players to determine play styles however if a more focused data extracting around players was conducted it maybe possible to identify different play styles for these players. This could lead to identifying best ways of playing Dota 2.
+The brief look into Shadow Fiend's duration when compared to Windranger brings in more questions such as what is a good team composition? How should this team play? Do they go for a quick win or should they go for a slow and steady win? One might imagine that a team consisting of only support heroes will struggle to win, as will teams with no support roles. How do different team compositions play out against each other?
 
-Further to this the dataset posted to Kaggle by devin contained many more csv files relating to these matches which could be brought into the study to further enrich future analysis. This study has only scratches the surface of the possible avenues of exploration here. It has been extremely interesting and I highly recommend this dataset for further analysis.
+The investigation into gold and how gold_spent influences gold raised questions about items. In this study the specific items that were bought throughout each match was excluded. However a detailed examination of this information might identify which items are more effective at improving a heroes chances of winning matches. It may also show that some items work better for different heroes.
+
+In the orgininal dataset there were 33 separate columns dedicated to 'unit_order_' which were simply amalgamated into 'unit_order_total' for this study, however analysis of these individual variables may open interesting views on how to play, or how different heroes are played. This could lead to identifying best ways of playing Dota 2.
+
+Further to this the dataset posted to Kaggle by devin contained many more csv files relating to these matches which could be brought into the study to further enrich future analysis. This study has only scratched the surface of the possible avenues of exploration here. It has been extremely interesting and I highly recommend this dataset for further analysis.
 
 ### **References**
 Key documents for this report are:
