@@ -1,7 +1,7 @@
 ---
 title: "Capstone Dota2 Summary"
 author: "Louis MS"
-date: "17/04/2017"
+date: "18/04/2017"
 output: html_document
 ---
 
@@ -149,7 +149,7 @@ summary(Windranger.LogM_kills)
 
 ```
 
-In this model it can be seen that kills has a probability of 10.2% of not being significant to winning. This was initially surprising since a core aspect of Dota 2 is combat. However in the original model (Windranger.LogM) it is seen that getting assists is significant and positively impacts winning. This means that for players to increase their chances of winning they should contribute to fighting and help out their teammates in fights with enemy heroes, but should not worry about getting that final killing blow. They should not over-extend themselves just to get a kill as this can expose themselves to unnecessary risks of dying. Avoiding death is very important to being successful in Dota 2, as dying is shown to have a negative impact to winning as shown in the model.
+In this model it can be seen that the variable 'kills' as a predictor is not significant to 'wins'. This was initially surprising since a core aspect of Dota 2 is combat. However in the original model (Windranger.LogM) it is seen that getting assists is significant and positively impacts winning. This means that for players to increase their chances of winning they should contribute to fighting and help out their teammates in fights with enemy heroes, but should not worry about getting that final killing blow. They should not over-extend themselves just to get a kill as this can expose themselves to unnecessary risks of dying. Avoiding death is very important to being successful in Dota 2, as dying is shown to have a negative impact to winning as shown in the model.
 
 The variable 'duration' shows a positive correlation to winning in the model. This indicates that the longer a match goes on for the more likely Windranger will win.  
 
@@ -163,10 +163,11 @@ Windranger <- CombinedDF[which(CombinedDF$Name=="Windranger"),]
 
 # ggplot of Windranger duration split out by win/loss
 ggplot(Windranger, aes(x = duration, colour = WL)) +
-  geom_density()
+  geom_density() +
+  labs(title="Windranger 'Duration' Density Plot")
 ```
 
-<center>This density plot shows that Windranger wins more often in longer, drawn-out matches.</center>
+
 
 ```{r, Shadow Fiend duration density plot, out.width="400px",fig.align="center", echo=FALSE}
 # Selecting all Windranger data
@@ -174,12 +175,16 @@ ShadowFiend <- CombinedDF[which(CombinedDF$Name=="Shadow Fiend"),]
 
 # ggplot of Windranger duration split out by win/loss
 ggplot(ShadowFiend, aes(x = duration, colour = WL)) +
-  geom_density()
+  geom_density()+
+  labs(title="Shadow Fiend 'Duration' Density Plot")
 ```
 
-<center>This density plot show that Shadow Fiend wins more often in shorter matches.</center>
 
-These two plots show that Windranger wins more of the longer matches and Shadow fiend wins more of the shorter matches, indicating types of styles of how players should play these heroes based on duration alone. Heroes like Shadow Fiend should push for a quick win and Windranger should try to long-out matches and endure pushes against their side so they have more time to rank up and increase their chances of winning. This analysis shows that further work can be done to understand how team compositions should be put together.
+These density plots show that winning matches for Windranger tend to be slightly longer than losing matches. Shadow fiend shows the opposite. This indicates different types of styles of how players should play these heroes. Heroes like Shadow Fiend maybe more successful pushing for a quick win while Windranger may benefit from playing more defensively initially. This analysis shows that further work can be done to understand how team compositions should be put together.
+
+To conclude this logistic model has inferred that to win matches it is important to enter combat and assist in the killing of enemy heroes, but it is not necessarily important to score the killing blows. Avoiding death is also important as the time penalties incurred for dying puts the team on the back foot until that hero can re-join the fight.
+
+It is noted that the length a match goes on for can impact different heroes. The study here has highlighted that Windranger may benefit from longer matches while Shadow Fiend may benefit from shorter matches. Further work is required to analyse all heroes, which could also have an impact on team compositions and team strategies based upon those compositions.
 
 ### **Future Work**
 
@@ -195,11 +200,21 @@ Further to this the dataset posted to Kaggle by devin contained many more csv fi
 
 ### **References**
 Key documents for this report are:
+
 * Dota2_Introduction.Rmd
 * Dota2_Data_Wrangling.Rmd
 * Dota2_Analysis_Summary.Rmd
 
 Important support documents with raw working are:
+
 * Dota2_Analysis_and_Results.Rmd
 * Dota2_Detailed_Analysis.Rmd
 
+These documents can be found in the Github depository:
+
+[https://github.com/DMzMin/LMS_Dota2]
+
+#### **Thanks**
+Thanks goes out to Devin for posting such a great dataset to Kaggle.com
+
+Special thanks goes to Dr Guy Maskall for all his help, pointers and direction. There is no way I could have done this course without his help and support.  Thank you!
