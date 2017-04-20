@@ -17,8 +17,11 @@ Important support documents with raw workings are:
 Cleaned dataset is 'CombinedDF.csv'
 
 Introduction document: http://rpubs.com/LMS/Dota2_Introduction
+
 Wrangle document: http://rpubs.com/LMS/Dota2_Wrangle
+
 Analysis document: http://rpubs.com/LMS/Dota2_Analysis_Summary
+
 Final report document: http://rpubs.com/LMS/Capstone_Dota2_Report
 
 
