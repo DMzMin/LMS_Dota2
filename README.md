@@ -9,6 +9,7 @@ Key documents for this report are:
 * Dota2_Introduction.Rmd
 * Dota2_Data_Wrangling.Rmd
 * Dota2_Analysis_Summary.Rmd
+* Dota2_Presentation.pptx
 
 Important support documents with raw workings are:
 * Dota2_Analysis_and_Results.Rmd
@@ -25,5 +26,7 @@ Wrangle document: http://rpubs.com/LMS/Dota2_Wrangle
 Analysis document: http://rpubs.com/LMS/Dota2_Analysis_Summary
 
 Final report document: http://rpubs.com/LMS/Capstone_Dota2_Report
+
+Report presentation: https://github.com/DMzMin/LMS_Dota2/blob/master/Dota2_Presentation.pptx
 
 any questions please email <lms_data_science@gmail.com> (remove und3rsc0res)
