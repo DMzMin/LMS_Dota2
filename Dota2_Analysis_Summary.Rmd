@@ -1,7 +1,7 @@
 ---
 title: "Dota2_Analysis_Summary"
 author: "Louis MS"
-date: "10/04/2017"
+date: "20/04/2017"
 output: html_document
 ---
 
@@ -16,7 +16,7 @@ library(caTools)
 # This RPubs document publishes to here: http://rpubs.com/LMS/Dota2_Analysis_Summary
 ```
 
-```{r loading CombinedDF, include=FALSE}
+```{r loading CombinedDF}
 # This document uses the 'CombinedDF' data frame generated at the end of the  'Dota2_Data_Wrangling.Rmd' document. 
 
 # load CombinedDF.csv file for analysis
@@ -25,11 +25,11 @@ CombinedDF <- read.csv(file = "CombinedDF.csv")
 
 ### Linear Regression Modelling of Gold in Dota 2
 
-A key component in Dota 2 is gold which allows players to buy and upgrade equipment to make them perform better in a match and so we can use the variable gold as a proxy indicator for being sucessful in the game. The gold variable is how much gold a hero finishes with when the match end. Gold can be aquired by killing enemy heroes and creep. Gold is lost when a hero dies and the amount of gold lost per death is directly tied to the hero's level when they die. Gold can also be spent at the shop to upgrade equipment during the match.
+A key component in Dota 2 is gold which allows players to buy and upgrade equipment to make them perform better in a match and so we can use the variable gold as a proxy indicator for being successful in the game. The gold variable is how much gold a hero finishes with when the match ends. Gold can be aquired by killing enemy heroes, creep and destroying towers. Gold is lost when a hero dies and the amount of gold lost per death is directly tied to the hero's level when they die. Gold can also be spent at the shop to upgrade equipment during the match.
 
 Gold was compared to several other variables in several multiple linear regression models to identify how influential each independent variable was upon the dependent gold variable.  The most important variables are summarised in the table below.
 
-```{r independent variables influetial to gold, include=FALSE}
+```{r independent variables influetial to gold, echo=FALSE}
 Influential.Variables <- as.character(c("duration", "gold_per_min", "Win", "gold_spent", "deaths", "xp_per_min", "hero_damage"))
 Impact <- as.character(c("The length of matches will significantly impact the amount of gold a hero will finish with", "the rate of gold a hero gathers through the match", "Playing for a winning team will most likely produce more gold", "Spending gold will significantly impact how much a hero finishes with", "When a hero dies they lose an amount of gold", "The amount of gold lost upon death is determined by their level. Level is a discrete variable so continous variable 'xp_per_min' is used to represent level", "Killing and assisting in killing enemy heroes provide gold. The continious variable 'hero_damage' represents these two discrete variables"))
 
@@ -52,7 +52,7 @@ summary(Windranger.lm)
 ### Windranger Multi-linear Regression Model Conclusions
 In the Windranger's linear model we see that all the independent variables have very low P-values, with 'deaths' having the highest P-value of 0.278%. This indicates that the probability these variables are not related to gold is very low and we can assume that there is some sort of relationship here. The Adjusted R-squared value of 0.7233 also indicates that the model is a good fit for the data.
 
-The variable 'Win' has a positive regression coefficient of 893.8, which indicates that winning matches has a very strong positive relationship with the amount of gold a hero finishes with. This is expected since being on the winning team will open more opportunities for a hero to collect gold and less opportunities to losing it via deaths. This suggests that the methods employed for winning matches are also tied to gaining gold.
+The variable 'Win' has a positive regression coefficient of +893.8, which indicates that winning matches has a very strong positive relationship with the amount of gold a hero finishes with. This is expected since being on the winning team will open more opportunities for a hero to collect gold and less opportunities to losing it via deaths. This suggests that the methods employed for winning matches are also related to gaining gold.
 
 The variable 'gold_spent' has a negative regression coefficient of about -0.6 which is expected since the more you spend the less gold a hero will have at the end of the match. Interestingly though this coefficient is relatively close to zero, suggesting that spending gold does not have as much of an impact as might be expected. This is likely to be due to that spending gold has the purpose of giving heroes access to better equipment which goes on to help them perform better and possibly be more efficient at gaining gold. The independent variables such as 'duration' and 'Win' are likely to impact this variable.
 
@@ -85,7 +85,7 @@ summary(Windranger.LogM)
 
 ```
 
-The logistic regression model here shows all variables with very low P-values indicating that they all have some sort of significance towards winning matches in Dota 2.
+The logistic regression model here shows all variables selected with very low P-values indicating that they all have some sort of significance towards winning matches in Dota 2.
 
 Here we see that the variable with the largest positive regression coefficient is 'assists', which is one of the key combat statistics recorded in the game. Interestingly when 'kills' is added to the model we find the following.
 
@@ -96,7 +96,7 @@ summary(Windranger.LogM_Kills)
 
 ```
 
-Here we see 'kills' has a much higher P-value of 0.264, a probablility of mearly 30% that kills is not significant to winning. So assisting in kills is significant but scoring the killing blow to those kills is not. This means that enguaging in combat is important, as would be expected as this in one of the primary activities in the game, but supporting the kills of enemy players is more important than getting the kill.
+Here we see 'kills' has a much higher P-value of 0.264, a probablility of mearly 30% that kills is not significant to winning. So assisting in kills is significant but scoring the killing blow to those kills is not. This means that engauging in combat is important, as would be expected as this in one of the primary activities in the game, but supporting the kills of enemy players is more important than getting the kill.
 
 Lets check the original model for it predictive powers to see how well it holds up.
 

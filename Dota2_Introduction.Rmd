@@ -1,7 +1,7 @@
 ---
 title: "Dota 2 Capstone Report - Introduction"
 author: "Louis MS"
-date: "21 February 2017"
+date: "20 April 2017"
 output: html_document
 ---
 
@@ -18,17 +18,22 @@ library(reshape2)
 
 ## Introduction
 
-Dota 2 (Defence Of The Ancients 2) is a popular free-to-play multiplayer online battle arena (MOBA) that consists of two teams of five players against each other who fight for two sides; the Radiant and the Dire.  The objective of the game is for each team to gain access to the enemy base and destroy their large structure called an ‘Ancient’.  Each base is linked by three paths commonly referred to as ‘top, middle or lower lanes’.  Each lane has three towers and two barracks.  The towers act as defensive structures that automatically attack enemy units and the barracks act as spawn locations for AI-controlled units called ‘creeps’ that go out in waves along their corresponding lanes.  These will also automatically attack enemy units and structures they encounter in their lanes. There are also neutral creep spread out between the lanes called the 'jungle' where players can go farm these for experience and gold. Neutral creep stay where they spawn in their jungle locations and only attack when attacked.
+Dota 2 (Defence Of The Ancients 2) is a popular free-to-play multiplayer online battle arena (MOBA) that consists of two teams of five players against each other who fight for two sides; the Radiant and the Dire.  The objective of the game is for each team to gain access to the enemy base and destroy their large structure called an ‘Ancient’.  Each base is linked by three paths commonly referred to as ‘top, middle or lower lanes’.  Each lane has three towers and two barracks per side.  The towers act as defensive structures that automatically attack enemy units and the barracks act as spawn locations for AI-controlled units called ‘creeps’ that go out in waves along their corresponding lanes.  These will automatically attack enemy units and structures they encounter in their lanes. There are also neutral creep spread out between the lanes called the 'jungle' where players can go farm these for additional experience and gold. Neutral creep stay where they spawn in their jungle locations and only attack when attacked.
 
 The role for the human players is to escort their creep to the enemy base via the lanes, helping to remove enemy towers, creep and players while also defending their own towers from the enemy waves of creep and players.  Figure 1 shows the minimap of a Dota 2 game showing the locations of all towers, barracks and Ancients in the game.
 
-![Figure 1: Dota 2 mini map at start of the game where cubes (11/side) represent tower positions for Radiant (green) and Dire (red), smaller double-cubes (6/side)represent barracks location and non-cube (1/side) represents ‘Ancient’ location](Dota_2_minimap.jpg)
+<br>
+```{r, out.width="500px",fig.align="center", echo=FALSE}
+knitr::include_graphics("Dota_2_minimap.jpg")
+```
 
-Before the matches begin each player selects a hero from 112 different possibilities. Please note that there are currently 113 characters to choose from in Dota 2. The hero Monkey King was introduced to Dota 2 in 2016 and the last match recorded in this data set was played November 2015. As a new player this very large number to select from when first starting out is daunting, even to seasoned video game players. Not only do you have to select a character to play, you also get an option to veto another character, denying the other team from selecting them for that match. But how can anyone do this without any first-hand experience of either playing as these diverse set of characters or playing against them? Rarely do people have the time dive into the thousands posts about the game, guaging opinions and distilling good advice from the bad. So here we will attempt to see if any interesting information can be divulged through statistical analysis.
+<center>**Figure 1: Dota 2 mini map at start of the game where cubes (11/side) represent tower positions for Radiant (green) and Dire (red), smaller double-cubes (6/side)represent barracks location and non-cube (1/side) represents ‘Ancient’ location**</center>
+<br>  
+Before the matches begin each player selects a hero from 112 different possibilities. Please note that there are currently 113 characters to choose from in Dota 2. The hero Monkey King was introduced to Dota 2 in 2016 and the last match recorded in this data set was played November 2015. As a new player this very large number to select from when first starting out is daunting, even to seasoned video game players. Not only do you have to select a hero to play, you also get an option to veto another hero, denying the other team from selecting them for that match. But how can anyone do this without any first-hand experience of either playing as these diverse set of heroes or playing against them? Rarely do people have the time to dive into the thousands of posts about the game, gauging opinions and distilling good advice from the bad. So here we will attempt to see if any interesting information can be divulged through statistical analysis.
 
 Initial questions for a new player might be:
 
-1) Which hero or group of heroes should I choose from to try first? Which should I definetly avoid? 
+1) Which hero or group of heroes should I choose from to try first? Which should I definitely avoid? 
 2) Which hero is the most successful hero? I may want to choose them, or veto them.
 3) If my first choice is vetoed, who should I fall to next?
 4) Once we have selected the hero we want, what is the best strategy to generate a better performance and win condition?  
@@ -37,20 +42,20 @@ Initial questions for a new player might be:
   c) Or perhaps a balance between these variables?
 5) What sort of hero should I play?
 
-Question five is a more complex question to answer. In the meta of Dota 2 there are nine official roles that each hero is classed with. Please note there are more 'unofficial' roles cassified but for now we will just look at these nine. 
+Question five is a more complex question to answer. In the meta of Dota 2 there are nine official roles that each hero is classed with. Please note there are more 'unofficial' roles classified but for now we will just look at these nine. 
 
 The nine roles are: Carry, Disabler, Initiator, Jungler, Support, Durable, Nuker, Pusher and Escape.
 
 Descriptions of these roles and lists of heroes that fall into each classification can be found here dota2.gamepedia.com/Role [link](http://dota2.gamepedia.com/Role) and here wiki.teamliquid.net/dota2/Hero_Roles [link](http://wiki.teamliquid.net/dota2/Hero_Roles).
 
-So not only do new players have 112 characters but they also have to identify with a role from nine possibilities that is not defined in-game but only online by players and fans.  So some further questions might arise:
+So not only do new players have 112 characters but they also have to identify with a role from nine possibilities that is not defined in-game but only online by players and fans.  So some further questions that might arise:
 
-6) Can official roles be identified in the variables collected in the data set?
+6) Can official roles be identified in the variables collected in the dataset?
 
-If its possible to do this them maybe I only need to choose an official role that suits me and then pick the most sucessful character within that role so:
+If it is possible to do this them maybe I only need to choose an official role that suits me and then pick the most successful character within that role so:
 
 7) Is it possible to identify the best role to start out with as a new player?
-8) Which character in each role is the most sucessful / managable to play for the first time?
+8) Which character in each role is the most successful / manageable to play for the first time?
 
 It is likely that a balance of roles is most likely to generate a win condition so:
 
@@ -58,4 +63,4 @@ It is likely that a balance of roles is most likely to generate a win condition 
 
 10) Do different team compositions based upon role reveal different strategies? How effective are these strategies?
 
-Question 9 and 10 are decent questions but also extremely detailed. It may not be possible to distill this information with this data set but it will be attempted. If unsuccessful it is an excellent follow-on question for those who wish to take this study further. It may be possible to identify what information is lacking to fully explore these two questions.
+Question 9 and 10 are decent questions but also extremely detailed. It may not be possible to distill this information but it will be attempted. If unsuccessful it is an excellent follow-on question for those who wish to take this study further. It may be possible to identify what information is lacking to fully explore these two questions.

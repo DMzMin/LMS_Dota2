@@ -1,7 +1,7 @@
 ---
 title: "Capstone Dota2 Summary"
 author: "Louis MS"
-date: "18/04/2017"
+date: "20/04/2017"
 output: html_document
 ---
 
@@ -23,17 +23,17 @@ CombinedDF <- read.csv("CombinedDF.csv")
 The aim of this report is to provide new players to Dota 2 some starting strategies that will help them progress and win matches. The analysis used a Dota 2 dataset of 50,000 matches with data collected on all 10 players per match, leading to 500,000 separate observations. It has identified important variables that influence the amount of gold a player finishes with and has made some key observations with regards to winning matches.
 
 ### **What is Dota 2?**
-Dota 2 (Defence Of The Ancients 2) is a popular free-to-play multiplayer online battle arena (MOBA) that consists of two teams of five players against each other who fight for two sides; the Radiant and the Dire.  The objective of the game is for each team to gain access to the enemy base and destroy their large structure called an ‘Ancient’.  Each base is linked by three paths commonly referred to as ‘top, middle or lower lanes’.  Each lane has three towers and two barracks.  The towers act as defensive structures that automatically attack enemy units and the barracks act as spawn locations for AI-controlled units called ‘creeps’ that go out in waves along their corresponding lanes.  These will also automatically attack enemy units and structures they encounter in their lanes. The general objective for players is to escort their creep towards the enemy base, help them destroy enemy defence towers, gain access to their base and destroy the enemy 'Ancient' structure.
+Dota 2 (Defence Of The Ancients 2) is a popular free-to-play multiplayer online battle arena (MOBA) that consists of two teams of five players against each other who fight for two sides; the Radiant and the Dire.  The objective of the game is for each team to gain access to the enemy base and destroy their large structure called an ‘Ancient’.  Each base is linked by three paths commonly referred to as ‘top, middle or lower lanes’.  Each lane has three towers and two barracks.  The towers act as defensive structures that automatically attack enemy units and the barracks act as spawn locations for AI-controlled units called ‘creeps’ that go out in waves along their corresponding lanes.  These will automatically attack enemy units and structures they encounter in their lanes. The general objective for players is to escort their creep towards the enemy base, help them destroy enemy defence towers, gain access to their base and destroy the enemy 'Ancient' structure.
 
 ```{r, out.width="400px",fig.align="center", echo=FALSE}
 knitr::include_graphics("Dota_2_minimap.jpg")
 ```
 
-<center>Dota 2 mini map at start of the game where cubes (11/side) represent tower positions for Radiant (green) and Dire (red), smaller double-cubes (6/side)represent barracks location and non-cube (1/side) represents ‘Ancient’ location</center>
+<center>**Dota 2 mini map at start of the game where cubes (11/side) represent tower positions for Radiant (green) and Dire (red), smaller double-cubes (6/side)represent barracks location and non-cube (1/side) represents ‘Ancient’ location**</center>
 
 
 ### **The Dataset**
-Kaggle user Devin posted an excellent dataset of Dota 2 matches to [https://www.kaggle.com/devinanzelmo/dota-2-matches]. Here data was collected on a wide range of different variables from which heroes are picked, to the kills, deaths and assists they accrue to gold and xp accumulation for each match. This project focused on two main files; match.csv and players.csv. The file Hero_Names.csv was modified and used to support the work conducted on the match and players files.
+Kaggle user Devin posted an excellent dataset of Dota 2 matches to [https://www.kaggle.com/devinanzelmo/dota-2-matches](https://www.kaggle.com/devinanzelmo/dota-2-matches). Here data was collected on a wide range of different variables from which heroes are picked, to the kills, deaths and assists they accrue to gold and xp accumulation for each match. This project focused on two main files; match.csv and players.csv. The file Hero_Names.csv was modified and used to support the work conducted on the match and players files.
 
 The key variables within match.csv and players.csv used for this project are listed below. These two files were linked by the variable 'hero_id' into the data frame 'CombinedDF' and exported to 'CombinedDF.csv'.
 
@@ -62,17 +62,53 @@ knitr::kable(Players_Overview, format = "markdown")
 ```
 
 ## **Data Wrangling**
-While initially examining CombinedDF data frame it quickly became clear that some of these matches were not played at a competitive level. It is expected that these matches would collect spurious data and were removed. For example while looking at the histogram of the variable 'duration' it was seen that the longest match recorded went on for over 4 hours. Research online on Dota 2 forums suggested that typically matches would last between 20-60 minutes each. 
+While initially examining CombinedDF data frame it quickly became clear that some of these matches were not played at a competitive level. It is expected that these matches would collect spurious data and were removed. For example while looking at the histogram of the variable 'duration' it was seen that the longest match recorded went on for over 4 hours. Research online on Dota 2 forums suggested that typically matches would last between 25-60 minutes each. 
 
-The dataset was narrowed down to matches that last between 15-75 minutes to reduce the number of non-competitive matches in the analysis. This filter also managed to remove most matches that would have been filtered by other means. In the variable 'hero_id' where the value was 0 indicated that no hero was selected. This was due to teams being unbalanced in numbers and not a true 5v5 match from the start. Most of the matches with 'hero_id' 0 present had already been removed by the 15-75 minute filter of 'duration'. This was also true for matches where 'leaver_status' was not equal to 0. A 'leaver_status' of 1-4 indicated that at some point someone left the match, again creating imbalance in those matches.  Most of these had also been removed by the 'duration' filter.
+The dataset was narrowed down to matches that last between 15-75 minutes to reduce the number of non-competitive matches in the analysis. This filter also managed to remove most matches that would have been filtered by other means. In the variable 'hero_id' where the value was 0 indicated that no hero was selected. This led to teams being unbalanced in numbers at the very start and not a true 5v5 match. Most of the matches with 'hero_id' 0 present had already been removed by the 15-75 minute filter of 'duration'. This was also true for matches where 'leaver_status' was not equal to 0. A 'leaver_status' of 1-4 indicated that at some point someone left the match, again creating imbalance in those matches.  Most of these had also been removed by the 'duration' filter.
 
 Finally the file 'hero_names.csv' was modified by adding each hero's class and their roles they are associated with, and then added to the final 'CombinedDF' file. This file was the working dataset going forward with 420,510 separate observations across 51 different variables.
 
 ## **Models and Conclusions**
-The hero Windranger, the hero selected most often in the dataset, was used to identify the most important variables that impact 'gold' with multi-linear regression modelling. Windranger was also used to infer which variables are most important to winning matches with logistic regression modelling.
+When modeling was first performed it was applied to the whole dataset which produced models with enormous variance and noise. It was then decided to look at only one hero for modeling. The following plot shows how often each hero was selected, ordered by popularity and coloured by their win:loss ratio (win/loss).
+
+<br>
+```{r Hero_Bar, echo=FALSE}
+# bar plot for top 40 most popular hero names 
+Hero_Bar <- CombinedDF %>%
+  group_by(Name, Class, Role_Count, All_Roles) %>%
+  tally(sort = TRUE) %>%
+  rename(HN_Count=n)
+
+# Heroes win:loss ratio (WLR)
+
+Hero_WLR <- CombinedDF %>%
+  group_by(Name, WL) %>%
+  tally() %>%
+  spread(key = WL, value = n) %>%
+  mutate(WLR = round(Win/Loss, digits = 2))
+
+Hero_Bar <- left_join(Hero_Bar, Hero_WLR, by = "Name")
+```
+
+```{r Bar plot of Hero Name Count colour filled by WLR, echo=FALSE}
+# ggplot to show how hero selection stands up to their match Win:Loss ratio
+ggplot(head(Hero_Bar, n = 40), aes(x = reorder(Name, -HN_Count), y = HN_Count, width = 0.8, fill = WLR)) +
+  scale_fill_gradient2(low = "dark blue", high = "red", mid = "white", midpoint = 1) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Role_Count, vjust = 2)) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 8)) +
+  xlab("Top 40 Most Popular Heroes") +
+  ylab("Heroes Used Count")
+
+```
+
+<center>**this plot shows hero popularity coloured by their win:loss ratio where 1 (white) means they won and lost in equal amounts, more than 1 (red) means they won more than they lost and less than 1 (blue) means they lost more than they won. The closer to 1, the lighter the red or blues shading. The numbers in each bar represent the number of different roles each hero is categorized with.**</center>
+<br>
+
+The hero Windranger, the hero selected most often in the dataset, was used for all regression modeling going forward. This was a good choice because Windranger's Win:Loss ratio is close to 1 and has been categorized for 5 different roles, making it more of a 'generalist' hero who can play a range of different roles in the game.
 
 ### **Modelling gold with linear regression**
-A key component in Dota 2 is gold which allows players to buy and upgrade equipment to make them perform better in a match. Gold was compared to several other variables in several multiple linear regression models to identify how influential each independent variable was upon the dependent gold variable.  The most important variables are summarised in the table below.
+A key component in Dota 2 is gold which allows players to buy and upgrade equipment to make them perform better in a match and is a good proxy for being successful in the game. Gold was compared to several other variables in several multiple linear regression models to identify how influential each independent variable was upon the dependent gold variable.  The most important variables are summarised in the table below.
 
 ```{r independent variables influential to gold, echo=FALSE}
 Influential.Variables <- as.character(c("duration", "gold_per_min", "Win", "gold_spent", "deaths", "xp_per_min", "hero_damage"))
@@ -126,7 +162,7 @@ summary(Windranger.LogM)
 
 ```
 
-In this model it is seen that the variables with the largest regression coefficients to winning are the combat variables.  These are 'assists' which has a positive relationship to winning and 'deaths' which has a negative relationship to winning. 
+In this model it is seen that the variables with the most impacting regression coefficients to winning are the combat variables.  These are 'assists' which has a positive relationship to winning and 'deaths' which has a negative relationship to winning. 
 
 It was determined in previous models that getting kills in matches did not significantly contribute to winning. Here is the model with 'kills' included.
 
@@ -151,9 +187,9 @@ summary(Windranger.LogM_kills)
 
 In this model it can be seen that the variable 'kills' as a predictor is not significant to 'wins'. This was initially surprising since a core aspect of Dota 2 is combat. However in the original model (Windranger.LogM) it is seen that getting assists is significant and positively impacts winning. This means that for players to increase their chances of winning they should contribute to fighting and help out their teammates in fights with enemy heroes, but should not worry about getting that final killing blow. They should not over-extend themselves just to get a kill as this can expose themselves to unnecessary risks of dying. Avoiding death is very important to being successful in Dota 2, as dying is shown to have a negative impact to winning as shown in the model.
 
-The variable 'duration' shows a positive correlation to winning in the model. This indicates that the longer a match goes on for the more likely Windranger will win.  
+The variable 'duration' shows a positive correlation to winning in the model. This implies that Windranger may have a slightly better chance of winning in matches that are longer.  
 
-This led to further analysis in the form of comparing duration for Windranger against the second most popular hero, Shadow Fiend. Shadow Fiend is a good selection here for comparision since it is a hero that is more designed to focus on combat, where as Windranger can cover more roles and is more of a generalist.
+This led to further analysis in the form of comparing duration for Windranger against the second most popular hero, Shadow Fiend. Shadow Fiend is a good selection here for comparison since it is a hero that is more designed to focus on combat, whereas Windranger can cover more roles and is more of a generalist.
 
 The following compares Windranger's and Shadow Fiend's duration density plot split out by win / loss.
 
@@ -180,30 +216,35 @@ ggplot(ShadowFiend, aes(x = duration, colour = WL)) +
 ```
 
 
-These density plots show that winning matches for Windranger tend to be slightly longer than losing matches. Shadow fiend shows the opposite. This indicates different types of styles of how players should play these heroes. Heroes like Shadow Fiend maybe more successful pushing for a quick win while Windranger may benefit from playing more defensively initially. This analysis shows that further work can be done to understand how team compositions should be put together.
+These density plots show a slight shift in the density curves for both heroes when defined by win and loss. Winning matches for Windranger tend to be slightly longer than losing matches. Shadow fiend shows the opposite. This indicates different types of styles of how players should play these heroes. Windranger slightly prefers a longer match and Shadow Fiend a slightly shorter match. Heroes similar to Shadow Fiend maybe more successful pushing for a quick win while Windranger may benefit from playing more defensively initially, looking to draw out the match. It may be preferable to compare duration against the global median match duration to see this more clearly, however due to time constraints this is now recommended for future work.
+
+This analysis also indicates that further work can be done to understand how team compositions should be put together. Heroes who prefer shorter matches should get together and push for a fast match, and visa versa.
 
 To conclude this logistic model has inferred that to win matches it is important to enter combat and assist in the killing of enemy heroes, but it is not necessarily important to score the killing blows. Avoiding death is also important as the time penalties incurred for dying puts the team on the back foot until that hero can re-join the fight.
 
-It is noted that the length a match goes on for can impact different heroes. The study here has highlighted that Windranger may benefit from longer matches while Shadow Fiend may benefit from shorter matches. Further work is required to analyse all heroes, which could also have an impact on team compositions and team strategies based upon those compositions.
+It is noted that the length a match goes on for can impact different heroes. The study here has highlighted that Windranger may benefit from slightly longer matches while Shadow Fiend may benefit from slightly shorter matches. Further work is required to analyse all heroes, which could also have an impact on team compositions and team strategies based upon those compositions.
 
 ### **Future Work**
 
-The data frame 'CombinedDF' has a very large mix of diverse variables that could be used in many ways to explore the game Dota 2. This study has only looked at the Windranger hero in depth, the most selected hero within this dataset. Further work should look at other heroes such as Shadow Fiend, as quite different hero with only two roles which are all about combat and has slightly more wins than losses recorded.
+The data frame 'CombinedDF' has a very large mix of diverse variables that could be used in many ways to explore the game Dota 2. This study has only looked at the Windranger hero in depth, the most selected hero within this dataset. Further work should look at all other heroes to identify how the different variables impact them. This could highlight different strategies that should be used depending on which hero is selected.
 
 The brief look into Shadow Fiend's duration when compared to Windranger brings in more questions such as what is a good team composition? How should this team play? Do they go for a quick win or should they go for a slow and steady win? One might imagine that a team consisting of only support heroes will struggle to win, as will teams with no support roles. How do different team compositions play out against each other?
 
-The investigation into gold and how gold_spent influences gold raised questions about items. In this study the specific items that were bought throughout each match was excluded. However a detailed examination of this information might identify which items are more effective at improving a heroes chances of winning matches. It may also show that some items work better for different heroes.
+The investigation into gold and how the impact of gold_spent raises questions about items. Devin's original dataset includes a list of item bought throughout each match for each hero. In this study these details was excluded. However a detailed examination of this information might identify which items are more effective at improving a heroes chances of winning matches. It may also show that some items work better for different heroes.
 
-In the orgininal dataset there were 33 separate columns dedicated to 'unit_order_' which were simply amalgamated into 'unit_order_total' for this study, however analysis of these individual variables may open interesting views on how to play, or how different heroes are played. This could lead to identifying best ways of playing Dota 2.
+It was noted in 'Dota2_Data_Wrangling.Rmd' document that an interesting overlap between the differences in tower health at match end between Radiant and Dire towers existed when compared to 'Radiant_win' status, which could be used to identify 'strong wins' and 'close wins' for each side. Further investigation of this aspect could distill further interesting facts about the way the game is played.
+
+In the original dataset there were 33 separate columns dedicated to 'unit_order_' which were simply amalgamated into 'unit_order_total' for this study, however analysis of these individual variables may open interesting views on how to play, or how different heroes are played. This could lead to identifying best ways of playing Dota 2.
 
 Further to this the dataset posted to Kaggle by devin contained many more csv files relating to these matches which could be brought into the study to further enrich future analysis. This study has only scratched the surface of the possible avenues of exploration here. It has been extremely interesting and I highly recommend this dataset for further analysis.
 
 ### **References**
 Key documents for this report are:
 
-* Dota2_Introduction.Rmd
-* Dota2_Data_Wrangling.Rmd
-* Dota2_Analysis_Summary.Rmd
+* Dota2_Introduction.Rmd ([http://rpubs.com/LMS/Dota2_Introduction](http://rpubs.com/LMS/Dota2_Introduction))
+* Dota2_Data_Wrangling.Rmd ([http://rpubs.com/LMS/Dota2_Wrangled](http://rpubs.com/LMS/Dota2_Wrangled))
+* Dota2_Analysis_Summary.Rmd ([http://rpubs.com/LMS/Dota2_Analysis_Summary](http://rpubs.com/LMS/Dota2_Analysis_Summary))
+
 
 Important support documents with raw working are:
 
@@ -212,9 +253,13 @@ Important support documents with raw working are:
 
 These documents can be found in the Github depository:
 
-[https://github.com/DMzMin/LMS_Dota2]
+[https://github.com/DMzMin/LMS_Dota2](https://github.com/DMzMin/LMS_Dota2)
 
 #### **Thanks**
 Thanks goes out to Devin for posting such a great dataset to Kaggle.com
 
-Special thanks goes to Dr Guy Maskall for all his help, pointers and direction. There is no way I could have done this course without his help and support.  Thank you!
+Special thanks goes to Dr Guy Maskall for all his help, pointers and direction. There is no way I could have done this course without his help and support.  Thanks to the springboard.com team who run this course in data science. Thank you!
+
+Extra special thanks to my wife for her support and encouragement throughout my whole course.
+
+
