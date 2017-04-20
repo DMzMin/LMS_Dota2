@@ -16,6 +16,8 @@ Important support documents with raw workings are:
 
 Cleaned dataset is 'CombinedDF.csv'
 
+Important CSV files can be found at: https://drive.google.com/drive/folders/0B6fwG6hZ5LY5Y3Zva2IwTWZFME0?usp=sharing
+
 Introduction document: http://rpubs.com/LMS/Dota2_Introduction
 
 Wrangle document: http://rpubs.com/LMS/Dota2_Wrangle
@@ -24,6 +26,4 @@ Analysis document: http://rpubs.com/LMS/Dota2_Analysis_Summary
 
 Final report document: http://rpubs.com/LMS/Capstone_Dota2_Report
 
-
-
-A slide deck has been made in Microsoft Powerpoint due to time restrictions. Access to this slide deck is being worked on, as it is larger than the allowed size.
+any questions please email <lms_data_science@gmail.com> (remove und3rsc0res)
